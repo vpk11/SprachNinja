@@ -5,19 +5,17 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.vpk.sprachninja.data.local.AppDatabase
 import com.vpk.sprachninja.data.remote.GeminiApiService
 import com.vpk.sprachninja.data.repository.GeminiRepositoryImpl
+import com.vpk.sprachninja.data.repository.RecentQuestionRepositoryImpl
 import com.vpk.sprachninja.data.repository.SettingsRepositoryImpl
 import com.vpk.sprachninja.data.repository.UserRepositoryImpl
 import com.vpk.sprachninja.domain.repository.GeminiRepository
+import com.vpk.sprachninja.domain.repository.RecentQuestionRepository
 import com.vpk.sprachninja.domain.repository.SettingsRepository
 import com.vpk.sprachninja.domain.repository.UserRepository
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 
-/**
- * A manual dependency injection container that is created in the Application class.
- * It holds and provides instances of repositories, data sources, and use cases.
- */
 class AppContainer(private val context: Context) {
 
     // --- Database and Local Repositories ---
@@ -34,11 +32,13 @@ class AppContainer(private val context: Context) {
         SettingsRepositoryImpl(context)
     }
 
+    val recentQuestionRepository: RecentQuestionRepository by lazy {
+        RecentQuestionRepositoryImpl(appDatabase.recentQuestionDao())
+    }
+
     // --- Networking ---
 
-    private val json = Json {
-        ignoreUnknownKeys = true
-    }
+    private val json = Json { ignoreUnknownKeys = true }
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
@@ -53,10 +53,6 @@ class AppContainer(private val context: Context) {
 
     // --- Public Repositories that use Networking ---
 
-    /**
-     * A public lazy-initialized property for the GeminiRepository.
-     * This provides a clean abstraction over the Gemini API calls.
-     */
     val geminiRepository: GeminiRepository by lazy {
         GeminiRepositoryImpl(geminiApiService, settingsRepository)
     }
