@@ -11,13 +11,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-/**
- * The concrete implementation of the SettingsRepository interface.
- * This class is responsible for securely storing and retrieving app settings
- * using EncryptedSharedPreferences.
- *
- * @param context The application context, required to create SharedPreferences.
- */
 class SettingsRepositoryImpl(private val context: Context) : SettingsRepository {
 
     companion object {
@@ -25,6 +18,8 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
         private const val KEY_API_KEY = "api_key"
         private const val KEY_MODEL_NAME = "model_name"
         private const val DEFAULT_MODEL_NAME = "gemini-1.5-flash"
+        private const val KEY_DAILY_TIP_DATE = "daily_tip_date"
+        private const val KEY_DAILY_TIP_CONTENT = "daily_tip_content"
     }
 
     private val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
@@ -59,6 +54,21 @@ class SettingsRepositoryImpl(private val context: Context) : SettingsRepository 
 
         awaitClose {
             sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
+
+    override suspend fun getDailyTip(dateString: String): String? {
+        val savedDate = sharedPreferences.getString(KEY_DAILY_TIP_DATE, null)
+        if (savedDate == dateString) {
+            return sharedPreferences.getString(KEY_DAILY_TIP_CONTENT, null)
+        }
+        return null
+    }
+
+    override suspend fun saveDailyTip(dateString: String, tip: String) {
+        sharedPreferences.edit {
+            putString(KEY_DAILY_TIP_DATE, dateString)
+            putString(KEY_DAILY_TIP_CONTENT, tip)
         }
     }
 }

@@ -13,7 +13,6 @@ import com.vpk.sprachninja.domain.usecase.UpdateUserLevelUseCase
 class ViewModelFactory(
     private val appContainer: AppContainer,
     private val context: Context,
-    // Add nullable parameter for data that only some ViewModels need
     private val questionType: String? = null
 ) : ViewModelProvider.Factory {
 
@@ -27,7 +26,9 @@ class ViewModelFactory(
             }
             modelClass.isAssignableFrom(HomeViewModel::class.java) -> {
                 HomeViewModel(
-                    getUserUseCase = GetUserUseCase(appContainer.userRepository)
+                    getUserUseCase = GetUserUseCase(appContainer.userRepository),
+                    geminiRepository = appContainer.geminiRepository,
+                    settingsRepository = appContainer.settingsRepository
                 ) as T
             }
             modelClass.isAssignableFrom(SettingsViewModel::class.java) -> {
