@@ -12,6 +12,9 @@ room = "2.7.2"
 securityCrypto = "1.0.0"
 kotlinxCoroutines = "1.10.2"
 ksp = "2.2.0-2.0.2"
+retrofit = "3.0.0"
+retrofitKotlinxSerializationConverter = "1.0.0"
+kotlinxSerializationJson = "1.9.0"
 
 [libraries]
 # Coroutines
@@ -41,8 +44,16 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 # Security
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 
+# Retrofit
+retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-converter-kotlinx-serialization = { group = "com.jakewharton.retrofit", name = "retrofit2-kotlinx-serialization-converter", version.ref = "retrofitKotlinxSerializationConverter" }
+
+# Kotlinx Serialization
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
