@@ -135,3 +135,49 @@
 1. Find the `when (currentQuestion.questionType)` block you are about to create in the previous step (or create it if you haven't).
 2.  Add a new branch for the `"MULTIPLE_CHOICE_WORD"` case.
 3.  The logic inside this new branch can be identical to the `FILL_IN_THE_BLANK` logic: it should call your `checkFillInTheBlank` helper function, which performs a simple string comparison between `userAnswer.value` and `question.correctAnswer`. This works because the UI will have already set `userAnswer.value` to the text of the clicked button."
+
+---
+
+## Phase 24: Modern Settings Screen UI
+
+### Step 24.1: Create a Reusable Section Header Composable
+**Goal:** Create a simple, styled text composable to act as a title for each settings group.
+**Context:** This will be a new helper composable, likely placed within `SettingsScreen.kt` itself.
+**Prompt:**
+"In the `com.vpk.sprachninja.presentation.ui.view.SettingsScreen.kt` file, create a new private `@Composable` function named `SettingsHeader`.
+1.  It should accept a single `text: String` parameter.
+2.  The composable should consist of a `Text` element.
+3.  Apply `MaterialTheme.typography.titleMedium` for the style and `MaterialTheme.colorScheme.primary` for the color.
+4.  Add a `Modifier` with `padding(top = 24.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)` to give it appropriate spacing within the list."
+
+---
+
+### Step 24.2: Create a Reusable `SettingsCardItem` Composable
+**Goal:** Build a versatile, clickable `Card` that will be the primary UI for each individual setting. This replaces the old simple row.
+**Context:** This is a new, core component for the settings screen.
+**Prompt:**
+"In `com.vpk.sprachninja.presentation.ui.view.SettingsScreen.kt`, create a new private `@Composable` function named `SettingsCardItem`.
+1.  It should accept the following parameters: `title: String`, `subtitle: String`, `icon: ImageVector`, and `onClick: () -> Unit`.
+2.  The root composable must be a `Card` with `modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).clickable(onClick = onClick)`.
+3.  Inside the `Card`, use a `Row` with `verticalAlignment = Alignment.CenterVertically` and a `padding` of `16.dp`.
+4.  The `Row` should contain:
+    *   An `Icon` for the `icon` parameter.
+    *   A `Spacer` of `16.dp`.
+    *   A `Column` with `modifier = Modifier.weight(1f)`. This column will contain two `Text` composables: one for the `title` (using `MaterialTheme.typography.bodyLarge`) and one for the `subtitle` (using `MaterialTheme.typography.bodySmall` and `MaterialTheme.colorScheme.onSurfaceVariant`).
+    *   An `Icon` for `Icons.AutoMirrored.Filled.KeyboardArrowRight` to indicate it's clickable."
+
+---
+
+### Step 24.3: Rebuild the Settings Screen with the New Components
+**Goal:** Replace the old `LazyColumn` content with a new layout structured with headers and cards.
+**Context:** The `SettingsScreen.kt` file contains the main UI. The `SettingsViewModel` already provides the necessary user and settings data.
+**Prompt:**
+"Modify the main `SettingsScreen` composable in `com.vpk.sprachninja.presentation.ui.view.SettingsScreen.kt`.
+1.  Inside the `Scaffold`, replace the existing `LazyColumn` content entirely.
+2.  Rebuild the `LazyColumn` content using the new components:
+    *   Call `SettingsHeader(text = "Account")`.
+    *   Call `SettingsCardItem` for the "My Level" setting. Use `Icons.Default.Person` for the icon, the user's name for the title, and their `germanLevel` for the subtitle. Wire the `onClick` to the existing dialog logic.
+    *   Call `SettingsHeader(text = "API Configuration")`.
+    *   Call `SettingsCardItem` for the "Gemini API Key" setting. Use `Icons.Default.Key` for the icon and a masked version of the API key for the subtitle. Wire its `onClick` to the API key dialog.
+    *   Call `SettingsHeader(text = "Legal")`.
+    *   Call `SettingsCardItem` for "Terms & Conditions", "Privacy Policy", and "Data Protection", using appropriate icons (`Description`, `Shield`, `Policy`) and wiring their `onClick` handlers to navigate to the `LegalActivity`."
