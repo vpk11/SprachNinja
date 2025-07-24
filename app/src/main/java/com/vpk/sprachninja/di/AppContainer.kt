@@ -2,7 +2,9 @@ package com.vpk.sprachninja.di
 
 import android.content.Context
 import com.vpk.sprachninja.data.local.AppDatabase
+import com.vpk.sprachninja.data.repository.SettingsRepositoryImpl
 import com.vpk.sprachninja.data.repository.UserRepositoryImpl
+import com.vpk.sprachninja.domain.repository.SettingsRepository
 import com.vpk.sprachninja.domain.repository.UserRepository
 
 /**
@@ -28,5 +30,13 @@ class AppContainer(private val context: Context) {
      */
     val userRepository: UserRepository by lazy {
         UserRepositoryImpl(appDatabase.userDao())
+    }
+
+    /**
+     * A public lazy-initialized property for the SettingsRepository.
+     * This provides access to securely stored application settings.
+     */
+    val settingsRepository: SettingsRepository by lazy {
+        SettingsRepositoryImpl(context)
     }
 }
