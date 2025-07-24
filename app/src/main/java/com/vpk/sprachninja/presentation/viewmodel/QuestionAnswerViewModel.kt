@@ -53,7 +53,7 @@ class QuestionAnswerViewModel(
             _uiState.value = QuestionUiState.Loading
             userAnswer.value = ""
             _validationState.value = ValidationState.UNCHECKED
-            _validationFeedback.value = null // 2. Reset feedback on new question
+            _validationFeedback.value = null
 
             try {
                 val user = userRepository.getUser().first()
@@ -97,7 +97,6 @@ class QuestionAnswerViewModel(
         }
     }
 
-    // 3. Update checkAnswer function with branching logic
     fun checkAnswer() {
         val currentState = _uiState.value
         if (currentState is QuestionUiState.Success) {
@@ -109,8 +108,9 @@ class QuestionAnswerViewModel(
             viewModelScope.launch {
                 when (currentQuestion.questionType) {
                     "TRANSLATE_EN_DE" -> checkTranslationWithLLM(currentQuestion, currentAnswer)
-                    "FILL_IN_THE_BLANK" -> checkFillInTheBlank(currentQuestion, currentAnswer)
-                    else -> {
+                    // Add the new case here
+                    "MULTIPLE_CHOICE_WORD", "FILL_IN_THE_BLANK" -> checkFillInTheBlank(currentQuestion, currentAnswer)
+                    else -> { // Default fallback
                         checkFillInTheBlank(currentQuestion, currentAnswer)
                     }
                 }

@@ -127,21 +127,21 @@ private fun SuccessState(
         )
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 1. Use a 'when' block to display different input controls
         when (question.questionType) {
             "MULTIPLE_CHOICE_WORD" -> MultipleChoiceInput(
                 options = question.options,
                 validationState = validationState,
                 onAnswerSelected = { selectedOption ->
                     onAnswerChange(selectedOption)
-                    onCheckAnswer() // Check answer immediately on selection
+                    onCheckAnswer()
                 }
             )
-            else -> { // Default to text input for other types
+            else -> {
                 TextInput(
                     userAnswer = userAnswer,
                     onAnswerChange = onAnswerChange,
                     validationState = validationState,
+                    validationFeedback = validationFeedback,
                     onCheckAnswer = onCheckAnswer,
                     focusManager = focusManager
                 )
@@ -162,7 +162,6 @@ private fun SuccessState(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Only show "Next Question" button when an answer has been validated
         if (validationState != ValidationState.UNCHECKED) {
             TextButton(onClick = onNext, modifier = Modifier.fillMaxWidth()) {
                 Text("Next Question")
@@ -176,6 +175,7 @@ private fun TextInput(
     userAnswer: String,
     onAnswerChange: (String) -> Unit,
     validationState: ValidationState,
+    validationFeedback: String?,
     onCheckAnswer: () -> Unit,
     focusManager: FocusManager
 ) {
@@ -209,7 +209,7 @@ private fun TextInput(
         enabled = validationState == ValidationState.UNCHECKED && userAnswer.isNotBlank(),
         modifier = Modifier.fillMaxWidth()
     ) {
-        if (validationState == ValidationState.UNCHECKED && userAnswer.isNotBlank() && validationFeedback == "Checking...") {
+        if (validationFeedback == "Checking...") {
             CircularProgressIndicator(modifier = Modifier.height(24.dp))
         } else {
             Text("Check Answer")
