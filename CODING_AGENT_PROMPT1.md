@@ -28,10 +28,10 @@ This document provides the next granular, iterative sequence of prompts to conti
 **Goal:** Create the data class for app settings and the domain-layer contract for accessing them.
 **Context:** The project has a `domain/repository` package.
 **Prompt:**
-"1. In a new package `com.vpk.sprachninja.domain.model`, create a data class `AppSettings` with two `String` properties: `apiKey` and `modelName`.
+1. In a new package `com.vpk.sprachninja.domain.model`, create a data class `AppSettings` with two `String` properties: `apiKey` and `modelName`.
 2. In the `com.vpk.sprachninja.domain.repository` package, create an interface `SettingsRepository`. It should define two methods:
     *   `suspend fun saveSettings(appSettings: AppSettings)`
-    *   `fun getSettings(): Flow<AppSettings>`"
+    *   `fun getSettings(): Flow<AppSettings>`
 
 ### Step 8.2: Implement the Settings Repository
 **Goal:** Create the data-layer implementation for `SettingsRepository` using `EncryptedSharedPreferences`.
