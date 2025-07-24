@@ -15,6 +15,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
+/**
+ * An enum representing the validation status of the user's answer.
+ */
+enum class ValidationState {
+    UNCHECKED, CORRECT, INCORRECT
+}
+
 class QuestionAnswerViewModel(
     private val geminiRepository: GeminiRepository,
     private val userRepository: UserRepository,
@@ -23,6 +30,11 @@ class QuestionAnswerViewModel(
 
     private val _uiState = MutableStateFlow<QuestionUiState>(QuestionUiState.Loading)
     val uiState: StateFlow<QuestionUiState> = _uiState.asStateFlow()
+
+    val userAnswer = MutableStateFlow("")
+
+    private val _validationState = MutableStateFlow(ValidationState.UNCHECKED)
+    val validationState: StateFlow<ValidationState> = _validationState.asStateFlow()
 
     private val jsonParser = Json { ignoreUnknownKeys = true }
 
@@ -33,6 +45,9 @@ class QuestionAnswerViewModel(
     fun loadNextQuestion() {
         viewModelScope.launch {
             _uiState.value = QuestionUiState.Loading
+            userAnswer.value = ""
+            _validationState.value = ValidationState.UNCHECKED
+
             try {
                 val user = userRepository.getUser().first()
                 if (user == null) {
@@ -47,12 +62,12 @@ class QuestionAnswerViewModel(
                 }
 
                 val randomTopic = topics.random()
-                val prompt = "Generate a single, simple German language practice question about the topic '$randomTopic' for a learner at level ${user.germanLevel}. The question should be challenging but appropriate for the level. Do not include the answer in the response."
+                val prompt = "Generate a single German grammar or vocabulary question about the topic '$randomTopic' for a learner at level ${user.germanLevel}."
 
                 val result = geminiRepository.generateQuestion(prompt)
 
-                result.onSuccess { question ->
-                    _uiState.value = QuestionUiState.Success(question)
+                result.onSuccess { practiceQuestion ->
+                    _uiState.value = QuestionUiState.Success(practiceQuestion)
                 }.onFailure { error ->
                     _uiState.value = QuestionUiState.Error(error.message ?: "An unknown error occurred.")
                 }
@@ -64,13 +79,24 @@ class QuestionAnswerViewModel(
         }
     }
 
+    fun checkAnswer() {
+        val currentState = _uiState.value
+        if (currentState is QuestionUiState.Success) {
+            val isCorrect = userAnswer.value.trim().equals(
+                currentState.question.correctAnswer,
+                ignoreCase = true
+            )
+            _validationState.value = if (isCorrect) ValidationState.CORRECT else ValidationState.INCORRECT
+        }
+    }
+
     private fun getTopicsForUserLevel(userLevel: String): List<String> {
         return try {
             val jsonString = context.resources.openRawResource(R.raw.german_levels_structure)
                 .bufferedReader().use { it.readText() }
             val curriculum = jsonParser.decodeFromString<Curriculum>(jsonString)
 
-            val majorLevel = userLevel.take(2) // e.g., "A1" from "A1.1"
+            val majorLevel = userLevel.take(2)
 
             curriculum.levels
                 .find { it.level.equals(majorLevel, ignoreCase = true) }
