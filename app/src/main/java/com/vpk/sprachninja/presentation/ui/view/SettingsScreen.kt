@@ -8,8 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -26,34 +30,42 @@ import com.vpk.sprachninja.ui.theme.SprachNinjaTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel) {
-    // Collect the settings state from the ViewModel.
-    // The UI will automatically recompose when the settings change.
+fun SettingsScreen(
+    viewModel: SettingsViewModel,
+    onNavigateUp: () -> Unit
+) {
     val settings by viewModel.settings.collectAsState()
 
     SprachNinjaTheme {
         Scaffold(
             topBar = {
-                TopAppBar(title = { Text("Settings") })
+                TopAppBar(
+                    title = { Text("Settings") },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateUp) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Navigate back"
+                            )
+                        }
+                    }
+                )
             }
         ) { paddingValues ->
             Surface(modifier = Modifier.padding(paddingValues)) {
                 LazyColumn {
                     item {
-                        // A good practice is to mask the API key for security and clean UI.
                         val apiKeySubtitle = if (settings.apiKey.isNotBlank()) "••••••••••••••••" else "Not set"
                         SettingsItem(
                             title = "Gemini API Key",
                             subtitle = apiKeySubtitle,
-                            onClick = {
-                                // TODO: Open a dialog to edit the API key and model name.
-                            }
+                            onClick = { /* TODO: Open a dialog */ }
                         )
                     }
                     item {
                         SettingsItem(
                             title = "Terms and Conditions",
-                            onClick = { /* TODO: Navigate to Terms and Conditions screen */ }
+                            onClick = { /* TODO: Navigate to Terms screen */ }
                         )
                     }
                     item {
@@ -74,13 +86,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     }
 }
 
-/**
- * A reusable composable for displaying a single row in a settings list.
- *
- * @param title The main text for the settings item.
- * @param subtitle Optional smaller text displayed below the title.
- * @param onClick The lambda to be executed when the item is clicked. If null, item is not clickable.
- */
+
 @Composable
 private fun SettingsItem(
     title: String,
@@ -90,15 +96,12 @@ private fun SettingsItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            // The clickable modifier is only enabled if onClick is not null.
             .clickable(enabled = onClick != null) {
                 onClick?.invoke()
             }
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Row(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,

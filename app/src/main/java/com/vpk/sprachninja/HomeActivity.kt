@@ -11,15 +11,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -27,8 +31,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.vpk.sprachninja.presentation.ui.view.OnboardingActivity
+import com.vpk.sprachninja.presentation.ui.view.SettingsActivity
 import com.vpk.sprachninja.presentation.viewmodel.HomeUiState
 import com.vpk.sprachninja.presentation.viewmodel.HomeViewModel
 import com.vpk.sprachninja.presentation.viewmodel.ViewModelFactory
@@ -51,15 +57,9 @@ class HomeActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     when (val state = uiState) {
-                        is HomeUiState.Loading -> {
-                            LoadingScreen()
-                        }
-                        is HomeUiState.Success -> {
-                            WelcomeScreen(username = state.user.username)
-                        }
-                        is HomeUiState.NoUser -> {
-                            NavigateToOnboarding()
-                        }
+                        is HomeUiState.Loading -> LoadingScreen()
+                        is HomeUiState.Success -> WelcomeScreen(username = state.user.username)
+                        is HomeUiState.NoUser -> NavigateToOnboarding()
                     }
                 }
             }
@@ -67,26 +67,32 @@ class HomeActivity : ComponentActivity() {
     }
 }
 
-@Composable
-private fun NavigateToOnboarding() {
-    val context = LocalContext.current
-    LaunchedEffect(key1 = Unit) {
-        val intent = Intent(context, OnboardingActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        context.startActivity(intent)
-    }
-}
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WelcomeScreen(username: String) {
-    // The main container is a Box to allow for layered alignment (for the settings icon).
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // The main content is centered in a Column.
+    val context = LocalContext.current
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(id = R.string.app_name)) },
+                actions = {
+                    IconButton(onClick = {
+                        context.startActivity(Intent(context, SettingsActivity::class.java))
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = "Settings"
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues), // Apply padding from Scaffold
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -94,33 +100,15 @@ fun WelcomeScreen(username: String) {
                 text = "Welcome back, $username!",
                 style = MaterialTheme.typography.headlineSmall
             )
-
             Spacer(modifier = Modifier.height(32.dp))
-
             Button(onClick = { /* TODO: Navigate to QuestionAnswerActivity */ }) {
                 Text("Start Learning")
             }
-        }
-
-        // The settings icon is aligned to the top end of the Box.
-        IconButton(
-            onClick = { /* TODO: Navigate to SettingsActivity */ },
-            modifier = Modifier.align(Alignment.TopEnd)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Settings,
-                contentDescription = "Settings" // Important for accessibility
-            )
         }
     }
 }
 
 @Composable
-fun LoadingScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator()
-    }
-}
+private fun NavigateToOnboarding() { /* ... */ }
+@Composable
+fun LoadingScreen() { /* ... */ }
