@@ -5,9 +5,18 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -18,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import com.vpk.sprachninja.presentation.ui.view.OnboardingActivity
 import com.vpk.sprachninja.presentation.viewmodel.HomeUiState
 import com.vpk.sprachninja.presentation.viewmodel.HomeViewModel
@@ -40,19 +50,14 @@ class HomeActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // Use an exhaustive 'when' to handle each state explicitly
                     when (val state = uiState) {
                         is HomeUiState.Loading -> {
-                            // State 1: We are waiting for the database to respond.
                             LoadingScreen()
                         }
                         is HomeUiState.Success -> {
-                            // State 2: Loading is finished, and we found a user.
                             WelcomeScreen(username = state.user.username)
                         }
                         is HomeUiState.NoUser -> {
-                            // State 3: Loading is finished, and there is no user.
-                            // This is the only time we should navigate to Onboarding.
                             NavigateToOnboarding()
                         }
                     }
@@ -65,7 +70,6 @@ class HomeActivity : ComponentActivity() {
 @Composable
 private fun NavigateToOnboarding() {
     val context = LocalContext.current
-    // This side-effect runs once when this Composable enters the screen
     LaunchedEffect(key1 = Unit) {
         val intent = Intent(context, OnboardingActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -76,14 +80,38 @@ private fun NavigateToOnboarding() {
 
 @Composable
 fun WelcomeScreen(username: String) {
+    // The main container is a Box to allow for layered alignment (for the settings icon).
     Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        modifier = Modifier.fillMaxSize()
     ) {
-        Text(
-            text = "Welcome back, $username!",
-            style = MaterialTheme.typography.headlineSmall
-        )
+        // The main content is centered in a Column.
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Welcome back, $username!",
+                style = MaterialTheme.typography.headlineSmall
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(onClick = { /* TODO: Navigate to QuestionAnswerActivity */ }) {
+                Text("Start Learning")
+            }
+        }
+
+        // The settings icon is aligned to the top end of the Box.
+        IconButton(
+            onClick = { /* TODO: Navigate to SettingsActivity */ },
+            modifier = Modifier.align(Alignment.TopEnd)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Settings,
+                contentDescription = "Settings" // Important for accessibility
+            )
+        }
     }
 }
 
