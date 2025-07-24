@@ -147,9 +147,9 @@ This document provides the next granular, iterative sequence of prompts to conti
 **Goal:** Build the final UI and Activity for the Q&A flow.
 **Context:** The `QuestionAnswerViewModel` is ready.
 **Prompt:**
-"1. In `com.vpk.sprachninja.presentation.ui.view`, create `QuestionAnswerActivity.kt`. It should instantiate the `QuestionAnswerViewModel` and host the `QuestionAnswerScreen`.
+1. In `com.vpk.sprachninja.presentation.ui.view`, create `QuestionAnswerActivity.kt`. It should instantiate the `QuestionAnswerViewModel` and host the `QuestionAnswerScreen`.
 2. In the same package, create `QuestionAnswerScreen.kt`. It should use a `Scaffold`, observe the `QuestionUiState`, and display the UI for each state (Loading, Error, Success). The success state should include a `Text` for the question, an `OutlinedTextField` for the answer, and a `Button` to submit.
-3. Declare `QuestionAnswerActivity` in `AndroidManifest.xml`."
+3. Declare `QuestionAnswerActivity` in `AndroidManifest.xml`.
 
 ### Step 14.4: Finalize Navigation
 **Goal:** Connect the "Start Learning" button to the new Q&A feature.

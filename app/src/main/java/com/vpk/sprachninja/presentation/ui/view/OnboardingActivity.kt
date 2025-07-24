@@ -21,10 +21,9 @@ class OnboardingActivity : ComponentActivity() {
 
         val appContainer = (application as SprachNinjaApp).appContainer
         val viewModel: OnboardingViewModel by viewModels {
-            ViewModelFactory(appContainer)
+            ViewModelFactory(appContainer, this)
         }
 
-        // Add this block to handle navigation on completion
         lifecycleScope.launch {
             // repeatOnLifecycle ensures the collector is active only when the
             // activity is in the STARTED state.
@@ -43,7 +42,10 @@ class OnboardingActivity : ComponentActivity() {
         }
 
         setContent {
-            OnboardingScreen(viewModel = viewModel)
+            val onboardingViewModel: OnboardingViewModel by viewModels {
+                ViewModelFactory(appContainer, this)
+            }
+            OnboardingScreen(viewModel = onboardingViewModel)
         }
     }
 }

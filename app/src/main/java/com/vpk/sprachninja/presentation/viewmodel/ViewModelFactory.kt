@@ -1,5 +1,6 @@
 package com.vpk.sprachninja.presentation.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.vpk.sprachninja.di.AppContainer
@@ -15,7 +16,10 @@ import com.vpk.sprachninja.domain.usecase.SaveUserUseCase
  *
  * @property appContainer The application's dependency container.
  */
-class ViewModelFactory(private val appContainer: AppContainer) : ViewModelProvider.Factory {
+class ViewModelFactory(
+    private val appContainer: AppContainer,
+    private val context: Context
+) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -34,6 +38,14 @@ class ViewModelFactory(private val appContainer: AppContainer) : ViewModelProvid
                 SettingsViewModel(
                     getSettingsUseCase = GetSettingsUseCase(appContainer.settingsRepository),
                     saveSettingsUseCase = SaveSettingsUseCase(appContainer.settingsRepository)
+                ) as T
+            }
+
+            modelClass.isAssignableFrom(QuestionAnswerViewModel::class.java) -> {
+                QuestionAnswerViewModel(
+                    geminiRepository = appContainer.geminiRepository,
+                    userRepository = appContainer.userRepository,
+                    context = context
                 ) as T
             }
             else -> {

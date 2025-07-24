@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".SprachNinjaApp"
         android:allowBackup="true"
@@ -36,6 +38,11 @@
 
         <activity
             android:name=".presentation.ui.view.LegalActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SprachNinja" />
+
+        <activity
+            android:name=".presentation.ui.view.QuestionAnswerActivity"
             android:exported="false"
             android:theme="@style/Theme.SprachNinja" />
     </application>

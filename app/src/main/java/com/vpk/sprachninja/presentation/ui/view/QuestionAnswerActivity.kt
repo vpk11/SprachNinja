@@ -5,22 +5,23 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import com.vpk.sprachninja.SprachNinjaApp
-import com.vpk.sprachninja.presentation.viewmodel.SettingsViewModel
+import com.vpk.sprachninja.presentation.viewmodel.QuestionAnswerViewModel
 import com.vpk.sprachninja.presentation.viewmodel.ViewModelFactory
 
-class SettingsActivity : ComponentActivity() {
+class QuestionAnswerActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val appContainer = (application as SprachNinjaApp).appContainer
-        val viewModel: SettingsViewModel by viewModels {
+
+        // Instantiate the ViewModel using our factory, providing the necessary context.
+        val viewModel: QuestionAnswerViewModel by viewModels {
             ViewModelFactory(appContainer, this)
         }
 
         setContent {
-            // Pass a lambda to handle the up navigation, which simply finishes the activity.
-            SettingsScreen(
+            QuestionAnswerScreen(
                 viewModel = viewModel,
                 onNavigateUp = { finish() }
             )
