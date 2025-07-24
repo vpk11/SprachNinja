@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.vpk.sprachninja.presentation.ui.view.OnboardingActivity
+import com.vpk.sprachninja.presentation.ui.view.SettingsActivity
 import com.vpk.sprachninja.presentation.viewmodel.HomeUiState
 import com.vpk.sprachninja.presentation.viewmodel.HomeViewModel
 import com.vpk.sprachninja.presentation.viewmodel.ViewModelFactory
@@ -80,11 +81,12 @@ private fun NavigateToOnboarding() {
 
 @Composable
 fun WelcomeScreen(username: String) {
-    // The main container is a Box to allow for layered alignment (for the settings icon).
+    // Get the current context, which is needed to launch an Intent.
+    val context = LocalContext.current
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // The main content is centered in a Column.
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
@@ -102,14 +104,16 @@ fun WelcomeScreen(username: String) {
             }
         }
 
-        // The settings icon is aligned to the top end of the Box.
         IconButton(
-            onClick = { /* TODO: Navigate to SettingsActivity */ },
+            // The onClick lambda now launches the SettingsActivity.
+            onClick = {
+                context.startActivity(Intent(context, SettingsActivity::class.java))
+            },
             modifier = Modifier.align(Alignment.TopEnd)
         ) {
             Icon(
                 imageVector = Icons.Filled.Settings,
-                contentDescription = "Settings" // Important for accessibility
+                contentDescription = "Settings"
             )
         }
     }
