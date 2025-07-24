@@ -22,11 +22,16 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.vpk.sprachninja.presentation.viewmodel.SettingsViewModel
 import com.vpk.sprachninja.ui.theme.SprachNinjaTheme
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +40,25 @@ fun SettingsScreen(
     onNavigateUp: () -> Unit
 ) {
     val settings by viewModel.settings.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        SettingsDialog(
+            initialApiKey = settings.apiKey,
+            initialModelName = settings.modelName,
+            onDismissRequest = {
+                showDialog = false
+            },
+            onConfirmation = { apiKey, modelName ->
+                coroutineScope.launch {
+                    viewModel.saveSettings(apiKey, modelName)
+                }
+                showDialog = false
+            }
+        )
+    }
 
     SprachNinjaTheme {
         Scaffold(
@@ -59,7 +83,9 @@ fun SettingsScreen(
                         SettingsItem(
                             title = "Gemini API Key",
                             subtitle = apiKeySubtitle,
-                            onClick = { /* TODO: Open a dialog */ }
+                            onClick = {
+                                showDialog = true
+                            }
                         )
                     }
                     item {
@@ -86,7 +112,6 @@ fun SettingsScreen(
     }
 }
 
-
 @Composable
 private fun SettingsItem(
     title: String,
@@ -101,7 +126,9 @@ private fun SettingsItem(
             }
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
