@@ -68,20 +68,17 @@ class GeminiRepositoryImpl(
         }
     }
 
-    // --- REFACTORED FUNCTION ---
     override suspend fun validateTranslation(
         originalQuestion: String,
         expectedAnswer: String,
         userAnswer: String
     ): Result<TranslationValidationResult> {
-        // Add a single return statement at the top of the try-catch expression
         return try {
             val settings = settingsRepository.getSettings().first()
             val apiKey = settings.apiKey
             val modelName = settings.modelName
 
             if (apiKey.isBlank()) {
-                // Throw an exception here, which will be caught by the outer catch block
                 throw IllegalStateException("Gemini API key is not set.")
             }
 
@@ -126,19 +123,14 @@ class GeminiRepositoryImpl(
                     Result.failure(Exception("Failed to parse the validation from the API response."))
                 }
             } else {
-                // This value will now be returned by the outer try-catch
                 Result.failure(Exception("The API did not return any validation content."))
             }
         } catch (e: Exception) {
             Log.e("GeminiRepo", "Error validating translation via Gemini API", e)
-            // This is the return value for any thrown exception
             Result.failure(e)
         }
     }
 
-    /**
-     * Constructs the full prompt to be sent to the Gemini API based on the question type.
-     */
     private fun buildPrompt(
         userLevel: String,
         topic: String,
@@ -154,10 +146,27 @@ class GeminiRepositoryImpl(
 
             OUTPUT:
             You MUST return ONLY a single, raw JSON object with no extra text or markdown formatting.
-            The JSON object must have the following keys: "questionText", "correctAnswer", and "questionType".
+            The JSON object must have the following keys: "questionText", "correctAnswer", "questionType", and optionally "options".
         """.trimIndent()
 
         return when (questionType) {
+            "MULTIPLE_CHOICE_WORD" -> """
+                You are a German language teacher creating a multiple-choice vocabulary quiz.
+                Your task is to generate a question for a student at the $userLevel level from the topic "$topic".
+
+                CRITICAL INSTRUCTIONS:
+                1. Select a single, common German noun (including its article, e.g., "der Tisch"), verb, or adjective appropriate for the $userLevel.
+                2. Provide the single correct English translation for this word.
+                3. Provide two plausible but incorrect English translations. These distractors should be related in theme or sound.
+                4. The three English options (1 correct, 2 incorrect) must be shuffled randomly.
+
+                $baseInstructions
+                The JSON "questionType" key MUST have the exact value "MULTIPLE_CHOICE_WORD".
+                The "questionText" key should be the German word.
+                The "correctAnswer" key should be the correct English translation.
+                The "options" key must be an array of three strings: the correct answer and the two incorrect distractors in a random order.
+            """.trimIndent()
+
             "TRANSLATE_EN_DE" -> """
                 You are an expert German teacher creating a translation exercise.
                 Your task is to generate a simple English sentence for a German student at the $userLevel level to translate.
