@@ -3,6 +3,7 @@ package com.vpk.sprachninja.presentation.ui.view
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,11 +13,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Policy
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Card
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.vpk.sprachninja.R
 import com.vpk.sprachninja.presentation.viewmodel.SettingsViewModel
@@ -93,25 +96,42 @@ fun SettingsScreen(
             }
         ) { paddingValues ->
             Surface(modifier = Modifier.padding(paddingValues)) {
-                LazyColumn {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     item {
-                        val apiKeySubtitle = if (settings.apiKey.isNotBlank()) "••••••••••••••••" else "Not set"
-                        SettingsItem(
-                            title = "Gemini API Key",
-                            subtitle = apiKeySubtitle,
-                            onClick = { showApiDialog = true }
-                        )
+                        SettingsHeader(text = "Account")
                     }
                     item {
-                        SettingsItem(
-                            title = "My Level",
-                            subtitle = user?.germanLevel ?: "Loading...",
+                        SettingsCardItem(
+                            title = user?.username ?: "Account",
+                            subtitle = "Level: ${user?.germanLevel ?: "..."}",
+                            icon = Icons.Default.Person,
                             onClick = { showLevelDialog = true }
                         )
                     }
+
                     item {
-                        SettingsItem(
-                            title = "Terms and Conditions",
+                        SettingsHeader(text = "API Configuration")
+                    }
+                    item {
+                        val apiKeySubtitle = if (settings.apiKey.isNotBlank()) "••••••••••••••••" else "Not set"
+                        SettingsCardItem(
+                            title = "Gemini API Key",
+                            subtitle = apiKeySubtitle,
+                            icon = Icons.Filled.Key,
+                            onClick = { showApiDialog = true }
+                        )
+                    }
+
+                    item {
+                        SettingsHeader(text = "Legal")
+                    }
+                    item {
+                        SettingsCardItem(
+                            title = "Terms & Conditions",
+                            subtitle = "Read our terms of service",
+                            icon = Icons.Filled.Description,
                             onClick = {
                                 navigateToLegal(
                                     context = context,
@@ -122,8 +142,10 @@ fun SettingsScreen(
                         )
                     }
                     item {
-                        SettingsItem(
+                        SettingsCardItem(
                             title = "Privacy Policy",
+                            subtitle = "How we handle your data",
+                            icon = Icons.Filled.Shield, // Corrected
                             onClick = {
                                 navigateToLegal(
                                     context = context,
@@ -134,8 +156,10 @@ fun SettingsScreen(
                         )
                     }
                     item {
-                        SettingsItem(
+                        SettingsCardItem(
                             title = "Data Protection",
+                            subtitle = "Information about on-device storage",
+                            icon = Icons.Filled.Policy,
                             onClick = {
                                 navigateToLegal(
                                     context = context,
@@ -157,39 +181,6 @@ private fun navigateToLegal(context: Context, titleResId: Int, contentResId: Int
         putExtra(LegalActivity.EXTRA_CONTENT_RES_ID, contentResId)
     }
     context.startActivity(intent)
-}
-
-@Composable
-private fun SettingsItem(
-    title: String,
-    subtitle: String? = null,
-    onClick: (() -> Unit)?
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = onClick != null) { onClick?.invoke() }
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-    ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-            Spacer(modifier = Modifier.width(16.dp))
-        }
-        if (subtitle != null) {
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-    HorizontalDivider(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        thickness = DividerDefaults.Thickness,
-        color = DividerDefaults.color
-    )
 }
 
 @Composable
