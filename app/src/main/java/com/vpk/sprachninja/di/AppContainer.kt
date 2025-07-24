@@ -14,8 +14,10 @@ import com.vpk.sprachninja.domain.repository.LevelStatsRepository
 import com.vpk.sprachninja.domain.repository.RecentQuestionRepository
 import com.vpk.sprachninja.domain.repository.SettingsRepository
 import com.vpk.sprachninja.domain.repository.UserRepository
+import java.util.concurrent.TimeUnit
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 
 class AppContainer(private val context: Context) {
@@ -46,9 +48,17 @@ class AppContainer(private val context: Context) {
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    private val okHttpClient: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .readTimeout(60, TimeUnit.SECONDS)
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .build()
+    }
+
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl("https://generativelanguage.googleapis.com/")
+            .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
     }

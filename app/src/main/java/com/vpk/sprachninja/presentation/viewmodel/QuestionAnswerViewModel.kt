@@ -27,7 +27,8 @@ class QuestionAnswerViewModel(
     private val userRepository: UserRepository,
     private val recentQuestionRepository: RecentQuestionRepository,
     private val levelStatsRepository: LevelStatsRepository,
-    private val context: Context
+    private val context: Context,
+    private val questionType: String // Add the new parameter
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<QuestionUiState>(QuestionUiState.Loading)
@@ -57,30 +58,28 @@ class QuestionAnswerViewModel(
                     return@launch
                 }
 
+                // Get recent questions to avoid repetition
                 val recentQuestions = recentQuestionRepository.getRecentQuestionsForLevel(user.germanLevel)
-                val exclusionList = recentQuestions.joinToString(separator = "\n") { "- ${it.questionText}" }
+                val exclusionList = recentQuestions.map { it.questionText }
 
                 val topics = getTopicsForUserLevel(user.germanLevel)
                 if (topics.isEmpty()) {
                     _uiState.value = QuestionUiState.Error("Could not find topics for level ${user.germanLevel}.")
                     return@launch
                 }
-
                 val randomTopic = topics.random()
 
-                val prompt = """
-                    You are an expert German teacher. Your task is to generate one single, high-quality, unambiguous fill-in-the-blank question in German. 
-                    Context:
-                    - Level: ${user.germanLevel}.
-                    
-                    CRITICAL: Do not generate any of the following questions again:
-                    $exclusionList
-                """.trimIndent()
-
-                val result = geminiRepository.generateQuestion(prompt)
+                // 3. Call the refactored repository method with all the required parameters
+                val result = geminiRepository.generateQuestion(
+                    userLevel = user.germanLevel,
+                    topic = randomTopic,
+                    questionType = questionType,
+                    recentQuestions = exclusionList
+                )
 
                 result.onSuccess { practiceQuestion ->
                     _uiState.value = QuestionUiState.Success(practiceQuestion)
+                    // Save the new question to the recent list
                     val newRecentQuestion = RecentQuestion(
                         questionText = practiceQuestion.questionText,
                         userLevel = user.germanLevel

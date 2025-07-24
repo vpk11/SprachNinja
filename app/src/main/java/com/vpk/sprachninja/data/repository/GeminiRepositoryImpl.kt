@@ -18,7 +18,12 @@ class GeminiRepositoryImpl(
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    override suspend fun generateQuestion(prompt: String): Result<PracticeQuestion> {
+    override suspend fun generateQuestion(
+        userLevel: String,
+        topic: String,
+        questionType: String,
+        recentQuestions: List<String>
+    ): Result<PracticeQuestion> {
         return try {
             val settings = settingsRepository.getSettings().first()
             val apiKey = settings.apiKey
@@ -28,24 +33,8 @@ class GeminiRepositoryImpl(
                 return Result.failure(Exception("Gemini API key is not set. Please set it in the settings."))
             }
 
-            // --- THIS IS THE NEW, REFINED PROMPT ---
-            val fullPrompt = """
-                $prompt
-
-                CRITICAL INSTRUCTIONS:
-                1.  The question must test a SINGLE, SPECIFIC grammar rule or vocabulary word related to the topic.
-                2.  The sentence context MUST make the correct answer clear and unambiguous. There should be only one logical answer.
-                3.  BAD EXAMPLE: "Das ist meine ___." (This is bad because many nouns can fit).
-                4.  GOOD EXAMPLE for topic 'Accusative Prepositions': "Der Vogel fliegt ___ den Baum." (The answer 'durch' is the only logical choice).
-                5.  GOOD EXAMPLE for topic 'Family': "Die Mutter meines Vaters ist meine ___." (The answer 'Oma' is the only logical choice).
-                
-                OUTPUT:
-                You MUST return ONLY a single, raw JSON object with no extra text or markdown formatting.
-                The JSON object must have the following keys:
-                - "questionText": A string containing the question with "___" as the blank.
-                - "correctAnswer": A string containing ONLY the word or phrase that fits in the blank.
-                - "questionType": A string with the exact value "FILL_IN_THE_BLANK".
-            """.trimIndent()
+            // Build the prompt based on the requested question type
+            val fullPrompt = buildPrompt(userLevel, topic, questionType, recentQuestions)
 
             val request = GeminiRequest(
                 contents = listOf(Content(parts = listOf(Part(text = fullPrompt))))
@@ -75,6 +64,67 @@ class GeminiRepositoryImpl(
         } catch (e: Exception) {
             Log.e("GeminiRepo", "Error generating question from Gemini API", e)
             Result.failure(e)
+        }
+    }
+
+    /**
+     * Constructs the full prompt to be sent to the Gemini API based on the question type.
+     */
+    private fun buildPrompt(
+        userLevel: String,
+        topic: String,
+        questionType: String,
+        recentQuestions: List<String>
+    ): String {
+        val recentQuestionsString = recentQuestions.joinToString(separator = "\n - ") { it }
+
+        val baseInstructions = """
+            IMPORTANT:
+            Do not generate any of the following questions again:
+             - $recentQuestionsString
+
+            OUTPUT:
+            You MUST return ONLY a single, raw JSON object with no extra text or markdown formatting.
+            The JSON object must have the following keys: "questionText", "correctAnswer", and "questionType".
+        """.trimIndent()
+
+        return when (questionType) {
+            "TRANSLATE_EN_DE" -> """
+                You are an expert German teacher creating a translation exercise.
+                Your task is to generate a simple English sentence for a German student at the $userLevel level to translate.
+                The topic is "$topic".
+
+                CRITICAL INSTRUCTIONS:
+                1. The English sentence must be simple, common, and appropriate for the $userLevel level.
+                2. The correct German translation should be a standard, natural-sounding sentence.
+
+                $baseInstructions
+                The JSON "questionType" key MUST have the exact value "TRANSLATE_EN_DE".
+                The "questionText" key should be the English sentence to translate.
+                The "correctAnswer" key should be the correct full German translation.
+            """.trimIndent()
+
+            "FILL_IN_THE_BLANK" -> """
+                You are an expert German teacher. Your task is to generate one single, high-quality, unambiguous fill-in-the-blank question in German.
+                Your task is to generate a question for a student at the $userLevel level.
+                The topic is "$topic".
+
+                CRITICAL INSTRUCTIONS:
+                1. Choose exactly one grammar point appropriate for this level.
+                2. Introduce exactly one new vocabulary word suitable for this level.
+                3. Write one complete German sentence (8–15 words) containing a single "___" placeholder.
+                4. The sentence context must make the correct answer the only possible choice.
+                5. Use the new vocabulary in its correct form (case, gender, number) and don’t test any other rules.
+                6. Do not include any extra text, explanation or formatting—return only a raw JSON object.
+                7. BAD EXAMPLE: "Das ist meine ___." (This is bad because many nouns can fit).
+
+                $baseInstructions
+                The JSON "questionType" key MUST have the exact value "FILL_IN_THE_BLANK".
+                The "questionText" key should be the German sentence with "___" as the blank.
+                The "correctAnswer" key should contain ONLY the word or phrase that fits in the blank.
+            """.trimIndent()
+
+            else -> throw IllegalArgumentException("Unsupported question type: $questionType")
         }
     }
 
