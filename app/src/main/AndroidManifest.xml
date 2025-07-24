@@ -33,6 +33,11 @@
             android:name=".presentation.ui.view.SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.SprachNinja" />
+
+        <activity
+            android:name=".presentation.ui.view.LegalActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SprachNinja" />
     </application>
 
 </manifest>

@@ -1,5 +1,7 @@
 package com.vpk.sprachninja.presentation.ui.view
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,8 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.vpk.sprachninja.R
 import com.vpk.sprachninja.presentation.viewmodel.SettingsViewModel
 import com.vpk.sprachninja.ui.theme.SprachNinjaTheme
 import kotlinx.coroutines.launch
@@ -41,16 +45,16 @@ fun SettingsScreen(
 ) {
     val settings by viewModel.settings.collectAsState()
     val coroutineScope = rememberCoroutineScope()
-
     var showDialog by remember { mutableStateOf(false) }
+
+    // Get the context to use for starting activities
+    val context = LocalContext.current
 
     if (showDialog) {
         SettingsDialog(
             initialApiKey = settings.apiKey,
             initialModelName = settings.modelName,
-            onDismissRequest = {
-                showDialog = false
-            },
+            onDismissRequest = { showDialog = false },
             onConfirmation = { apiKey, modelName ->
                 coroutineScope.launch {
                     viewModel.saveSettings(apiKey, modelName)
@@ -83,33 +87,60 @@ fun SettingsScreen(
                         SettingsItem(
                             title = "Gemini API Key",
                             subtitle = apiKeySubtitle,
-                            onClick = {
-                                showDialog = true
-                            }
+                            onClick = { showDialog = true }
                         )
                     }
                     item {
                         SettingsItem(
                             title = "Terms and Conditions",
-                            onClick = { /* TODO: Navigate to Terms screen */ }
+                            onClick = {
+                                navigateToLegal(
+                                    context = context,
+                                    titleResId = R.string.terms_and_conditions_title,
+                                    contentResId = R.string.terms_and_conditions_content
+                                )
+                            }
                         )
                     }
                     item {
                         SettingsItem(
                             title = "Privacy Policy",
-                            onClick = { /* TODO: Navigate to Privacy Policy screen */ }
+                            onClick = {
+                                navigateToLegal(
+                                    context = context,
+                                    titleResId = R.string.privacy_policy_title,
+                                    contentResId = R.string.privacy_policy_content
+                                )
+                            }
                         )
                     }
                     item {
                         SettingsItem(
                             title = "Data Protection",
-                            onClick = { /* TODO: Navigate to Data Protection screen */ }
+                            onClick = {
+                                navigateToLegal(
+                                    context = context,
+                                    titleResId = R.string.data_protection_title,
+                                    contentResId = R.string.data_protection_content
+                                )
+                            }
                         )
                     }
                 }
             }
         }
     }
+}
+
+/**
+ * A helper function to launch the LegalActivity with the correct extras.
+ */
+private fun navigateToLegal(context: Context, titleResId: Int, contentResId: Int) {
+    val intent = Intent(context, LegalActivity::class.java).apply {
+        putExtra(LegalActivity.EXTRA_TITLE_RES_ID, titleResId)
+        putExtra(LegalActivity.EXTRA_CONTENT_RES_ID, contentResId)
+    }
+    context.startActivity(intent)
 }
 
 @Composable
@@ -121,19 +152,11 @@ private fun SettingsItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = onClick != null) {
-                onClick?.invoke()
-            }
+            .clickable(enabled = onClick != null) { onClick?.invoke() }
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f)
-            )
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Text(text = title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
             Spacer(modifier = Modifier.width(16.dp))
         }
         if (subtitle != null) {
