@@ -5,10 +5,12 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.vpk.sprachninja.data.local.AppDatabase
 import com.vpk.sprachninja.data.remote.GeminiApiService
 import com.vpk.sprachninja.data.repository.GeminiRepositoryImpl
+import com.vpk.sprachninja.data.repository.LevelStatsRepositoryImpl
 import com.vpk.sprachninja.data.repository.RecentQuestionRepositoryImpl
 import com.vpk.sprachninja.data.repository.SettingsRepositoryImpl
 import com.vpk.sprachninja.data.repository.UserRepositoryImpl
 import com.vpk.sprachninja.domain.repository.GeminiRepository
+import com.vpk.sprachninja.domain.repository.LevelStatsRepository
 import com.vpk.sprachninja.domain.repository.RecentQuestionRepository
 import com.vpk.sprachninja.domain.repository.SettingsRepository
 import com.vpk.sprachninja.domain.repository.UserRepository
@@ -34,6 +36,10 @@ class AppContainer(private val context: Context) {
 
     val recentQuestionRepository: RecentQuestionRepository by lazy {
         RecentQuestionRepositoryImpl(appDatabase.recentQuestionDao())
+    }
+
+    val levelStatsRepository: LevelStatsRepository by lazy {
+        LevelStatsRepositoryImpl(appDatabase.levelStatsDao())
     }
 
     // --- Networking ---
