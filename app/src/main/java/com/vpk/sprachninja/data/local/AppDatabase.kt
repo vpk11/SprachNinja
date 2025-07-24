@@ -7,15 +7,13 @@ import androidx.room.RoomDatabase
 
 /**
  * The main database class for the application.
- * Updated to include the RecentQuestion entity.
  */
-// 1. Add RecentQuestion to entities array and increment version number to 2.
-@Database(entities = [User::class, RecentQuestion::class], version = 2, exportSchema = false)
+@Database(entities = [User::class, RecentQuestion::class, LevelStats::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
-    // 3. Add the new abstract function for the RecentQuestionDao.
     abstract fun recentQuestionDao(): RecentQuestionDao
+    abstract fun levelStatsDao(): LevelStatsDao
 
     companion object {
         @Volatile
@@ -28,9 +26,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "sprachninja_database"
                 )
-                    // 2. Add fallbackToDestructiveMigration to handle the version increment.
-                    //    This is simple for development; a real app would need a proper migration.
-                    .fallbackToDestructiveMigration(false)
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance
