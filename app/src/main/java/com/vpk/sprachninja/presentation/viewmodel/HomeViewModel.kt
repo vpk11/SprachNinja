@@ -2,31 +2,36 @@ package com.vpk.sprachninja.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.vpk.sprachninja.data.local.User
 import com.vpk.sprachninja.domain.usecase.GetUserUseCase
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-/**
- * ViewModel for the Home screen.
- * Its primary responsibility is to determine if a user profile exists to guide navigation.
- *
- * @param getUserUseCase The use case responsible for retrieving the user profile.
- */
 class HomeViewModel(
     getUserUseCase: GetUserUseCase
 ) : ViewModel() {
 
     /**
-     * A cold Flow from the use case is converted into a hot StateFlow.
-     * This makes the last known user value available to new collectors and survives
-     * configuration changes. It starts sharing when the UI is visible and stops after 5 seconds
-     * of inactivity.
+     * A StateFlow that represents the complete UI state of the home screen.
+     * It starts in a 'Loading' state and then transitions to either 'Success' or 'NoUser'
+     * based on the data received from the database.
      */
-    val user: StateFlow<User?> = getUserUseCase().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = null
-    )
+    val uiState: StateFlow<HomeUiState> = getUserUseCase()
+        .map { user ->
+            // Transform the raw User? object into a specific UI state
+            if (user != null) {
+                HomeUiState.Success(user)
+            } else {
+                HomeUiState.NoUser
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            // The flow starts emitting only when the UI is subscribed and remains active
+            // for 5 seconds afterward to survive configuration changes.
+            started = SharingStarted.WhileSubscribed(5000),
+            // The crucial initial state is explicitly Loading.
+            initialValue = HomeUiState.Loading
+        )
 }

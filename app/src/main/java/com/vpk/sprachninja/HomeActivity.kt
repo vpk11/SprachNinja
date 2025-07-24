@@ -17,7 +17,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.vpk.sprachninja.presentation.ui.view.OnboardingActivity
+import com.vpk.sprachninja.presentation.viewmodel.HomeUiState
 import com.vpk.sprachninja.presentation.viewmodel.HomeViewModel
 import com.vpk.sprachninja.presentation.viewmodel.ViewModelFactory
 import com.vpk.sprachninja.ui.theme.SprachNinjaTheme
@@ -31,36 +33,44 @@ class HomeActivity : ComponentActivity() {
         val viewModel: HomeViewModel by viewModels { ViewModelFactory(appContainer) }
 
         setContent {
-            val user by viewModel.user.collectAsState()
-
             SprachNinjaTheme {
+                val uiState by viewModel.uiState.collectAsState()
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // Use a LaunchedEffect that triggers only once to check the user's existence.
-                    // If user is null after the initial check, navigate to onboarding.
-                    LaunchedEffect(key1 = user) {
-                        if (user == null) {
-                            // Check again to avoid race condition on first load
-                            if (viewModel.user.value == null) {
-                                val intent = Intent(this@HomeActivity, OnboardingActivity::class.java)
-                                startActivity(intent)
-                                finish() // Finish HomeActivity so user can't navigate back to it
-                            }
+                    // Use an exhaustive 'when' to handle each state explicitly
+                    when (val state = uiState) {
+                        is HomeUiState.Loading -> {
+                            // State 1: We are waiting for the database to respond.
+                            LoadingScreen()
                         }
-                    }
-
-                    // Show a loading indicator while the user state is being determined.
-                    // Once the user is confirmed to exist, show the welcome screen.
-                    if (user != null) {
-                        WelcomeScreen(username = user!!.username)
-                    } else {
-                        LoadingScreen()
+                        is HomeUiState.Success -> {
+                            // State 2: Loading is finished, and we found a user.
+                            WelcomeScreen(username = state.user.username)
+                        }
+                        is HomeUiState.NoUser -> {
+                            // State 3: Loading is finished, and there is no user.
+                            // This is the only time we should navigate to Onboarding.
+                            NavigateToOnboarding()
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun NavigateToOnboarding() {
+    val context = LocalContext.current
+    // This side-effect runs once when this Composable enters the screen
+    LaunchedEffect(key1 = Unit) {
+        val intent = Intent(context, OnboardingActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        context.startActivity(intent)
     }
 }
 
