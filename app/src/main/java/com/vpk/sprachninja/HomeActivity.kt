@@ -29,12 +29,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.vpk.sprachninja.presentation.ui.view.OnboardingActivity
+import com.vpk.sprachninja.presentation.ui.view.PracticeModeDialog
 import com.vpk.sprachninja.presentation.ui.view.ProfileActivity
 import com.vpk.sprachninja.presentation.ui.view.QuestionAnswerActivity
 import com.vpk.sprachninja.presentation.ui.view.SettingsActivity
@@ -42,6 +46,8 @@ import com.vpk.sprachninja.presentation.viewmodel.HomeUiState
 import com.vpk.sprachninja.presentation.viewmodel.HomeViewModel
 import com.vpk.sprachninja.presentation.viewmodel.ViewModelFactory
 import com.vpk.sprachninja.ui.theme.SprachNinjaTheme
+
+const val QUESTION_TYPE_EXTRA = "com.vpk.sprachninja.QUESTION_TYPE_EXTRA"
 
 class HomeActivity : ComponentActivity() {
 
@@ -76,6 +82,20 @@ class HomeActivity : ComponentActivity() {
 @Composable
 fun WelcomeScreen(username: String) {
     val context = LocalContext.current
+    var showPracticeModeDialog by remember { mutableStateOf(false) }
+
+    if (showPracticeModeDialog) {
+        PracticeModeDialog(
+            onDismissRequest = { showPracticeModeDialog = false },
+            onModeSelected = { questionType ->
+                showPracticeModeDialog = false
+                val intent = Intent(context, QuestionAnswerActivity::class.java).apply {
+                    putExtra(QUESTION_TYPE_EXTRA, questionType)
+                }
+                context.startActivity(intent)
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -115,7 +135,7 @@ fun WelcomeScreen(username: String) {
             )
             Spacer(modifier = Modifier.height(32.dp))
             Button(onClick = {
-                context.startActivity(Intent(context, QuestionAnswerActivity::class.java))
+                showPracticeModeDialog = true
             }) {
                 Text("Start Learning")
             }
