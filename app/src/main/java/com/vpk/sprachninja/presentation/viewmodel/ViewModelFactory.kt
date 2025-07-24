@@ -9,13 +9,6 @@ import com.vpk.sprachninja.domain.usecase.GetUserUseCase
 import com.vpk.sprachninja.domain.usecase.SaveSettingsUseCase
 import com.vpk.sprachninja.domain.usecase.SaveUserUseCase
 
-/**
- * A custom factory for creating ViewModel instances.
- * This is necessary because our ViewModels have constructors with dependencies
- * that need to be provided from our manual DI container (AppContainer).
- *
- * @property appContainer The application's dependency container.
- */
 class ViewModelFactory(
     private val appContainer: AppContainer,
     private val context: Context
@@ -40,11 +33,12 @@ class ViewModelFactory(
                     saveSettingsUseCase = SaveSettingsUseCase(appContainer.settingsRepository)
                 ) as T
             }
-
             modelClass.isAssignableFrom(QuestionAnswerViewModel::class.java) -> {
                 QuestionAnswerViewModel(
                     geminiRepository = appContainer.geminiRepository,
                     userRepository = appContainer.userRepository,
+                    // Provide the new dependency from the AppContainer
+                    recentQuestionRepository = appContainer.recentQuestionRepository,
                     context = context
                 ) as T
             }

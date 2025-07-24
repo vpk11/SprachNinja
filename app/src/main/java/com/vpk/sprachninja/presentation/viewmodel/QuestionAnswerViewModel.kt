@@ -5,8 +5,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vpk.sprachninja.R
+import com.vpk.sprachninja.data.local.RecentQuestion
 import com.vpk.sprachninja.data.model.Curriculum
 import com.vpk.sprachninja.domain.repository.GeminiRepository
+import com.vpk.sprachninja.domain.repository.RecentQuestionRepository
 import com.vpk.sprachninja.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,9 +17,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
-/**
- * An enum representing the validation status of the user's answer.
- */
 enum class ValidationState {
     UNCHECKED, CORRECT, INCORRECT
 }
@@ -25,6 +24,7 @@ enum class ValidationState {
 class QuestionAnswerViewModel(
     private val geminiRepository: GeminiRepository,
     private val userRepository: UserRepository,
+    private val recentQuestionRepository: RecentQuestionRepository, // 1. Add new repository
     private val context: Context
 ) : ViewModel() {
 
@@ -55,6 +55,10 @@ class QuestionAnswerViewModel(
                     return@launch
                 }
 
+                // 2. Fetch the list of recent questions for the user's level.
+                val recentQuestions = recentQuestionRepository.getRecentQuestionsForLevel(user.germanLevel)
+                val exclusionList = recentQuestions.joinToString(separator = "\n") { "- ${it.questionText}" }
+
                 val topics = getTopicsForUserLevel(user.germanLevel)
                 if (topics.isEmpty()) {
                     _uiState.value = QuestionUiState.Error("Could not find topics for level ${user.germanLevel}.")
@@ -62,12 +66,25 @@ class QuestionAnswerViewModel(
                 }
 
                 val randomTopic = topics.random()
-                val prompt = "Generate a single German grammar or vocabulary question about the topic '$randomTopic' for a learner at level ${user.germanLevel}."
+
+                // 3. Modify the prompt to include the exclusion list.
+                val prompt = """
+                    Generate a single German grammar or vocabulary question about the topic '$randomTopic' for a learner at level ${user.germanLevel}.
+                    
+                    CRITICAL: Do not generate any of the following questions again:
+                    $exclusionList
+                """.trimIndent()
 
                 val result = geminiRepository.generateQuestion(prompt)
 
                 result.onSuccess { practiceQuestion ->
                     _uiState.value = QuestionUiState.Success(practiceQuestion)
+                    // 4. On success, insert the new question into our database.
+                    val newRecentQuestion = RecentQuestion(
+                        questionText = practiceQuestion.questionText,
+                        userLevel = user.germanLevel
+                    )
+                    recentQuestionRepository.insert(newRecentQuestion)
                 }.onFailure { error ->
                     _uiState.value = QuestionUiState.Error(error.message ?: "An unknown error occurred.")
                 }
@@ -95,9 +112,7 @@ class QuestionAnswerViewModel(
             val jsonString = context.resources.openRawResource(R.raw.german_levels_structure)
                 .bufferedReader().use { it.readText() }
             val curriculum = jsonParser.decodeFromString<Curriculum>(jsonString)
-
             val majorLevel = userLevel.take(2)
-
             curriculum.levels
                 .find { it.level.equals(majorLevel, ignoreCase = true) }
                 ?.subLevels
