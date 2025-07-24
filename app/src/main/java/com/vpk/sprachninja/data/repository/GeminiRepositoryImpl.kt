@@ -16,7 +16,6 @@ class GeminiRepositoryImpl(
     private val settingsRepository: SettingsRepository
 ) : GeminiRepository {
 
-    // Initialize the JSON parser, making it lenient to unknown keys from the API.
     private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun generateQuestion(prompt: String): Result<PracticeQuestion> {
@@ -29,19 +28,23 @@ class GeminiRepositoryImpl(
                 return Result.failure(Exception("Gemini API key is not set. Please set it in the settings."))
             }
 
+            // --- THIS IS THE NEW, REFINED PROMPT ---
             val fullPrompt = """
                 $prompt
+
+                CRITICAL INSTRUCTIONS:
+                1.  The question must test a SINGLE, SPECIFIC grammar rule or vocabulary word related to the topic.
+                2.  The sentence context MUST make the correct answer clear and unambiguous. There should be only one logical answer.
+                3.  BAD EXAMPLE: "Das ist meine ___." (This is bad because many nouns can fit).
+                4.  GOOD EXAMPLE for topic 'Accusative Prepositions': "Der Vogel fliegt ___ den Baum." (The answer 'durch' is the only logical choice).
+                5.  GOOD EXAMPLE for topic 'Family': "Die Mutter meines Vaters ist meine ___." (The answer 'Oma' is the only logical choice).
                 
-                Based on the topic above, generate a single practice question.
-                The question must be a fill-in-the-blank style, focusing on a single grammar rule or vocabulary word.
-                
+                OUTPUT:
                 You MUST return ONLY a single, raw JSON object with no extra text or markdown formatting.
                 The JSON object must have the following keys:
                 - "questionText": A string containing the question with "___" as the blank.
                 - "correctAnswer": A string containing ONLY the word or phrase that fits in the blank.
                 - "questionType": A string with the exact value "FILL_IN_THE_BLANK".
-                
-                Example: {"questionText":"Ich gehe ___ Kino.","correctAnswer":"ins","questionType":"FILL_IN_THE_BLANK"}
             """.trimIndent()
 
             val request = GeminiRequest(
@@ -54,13 +57,14 @@ class GeminiRepositoryImpl(
                 request = request
             )
 
-            val generatedText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
-            if (generatedText != null) {
+            val rawText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+            if (rawText != null) {
+                val cleanedJson = cleanApiResponse(rawText)
                 try {
-                    val practiceQuestion = json.decodeFromString<PracticeQuestion>(generatedText)
+                    val practiceQuestion = json.decodeFromString<PracticeQuestion>(cleanedJson)
                     Result.success(practiceQuestion)
                 } catch (e: Exception) {
-                    Log.e("GeminiRepo", "JSON Parsing failed: ${e.message}. Raw text: $generatedText", e)
+                    Log.e("GeminiRepo", "JSON Parsing failed: ${e.message}. Cleaned text: $cleanedJson", e)
                     Result.failure(Exception("Failed to parse the question from the API response."))
                 }
             } else {
@@ -71,6 +75,16 @@ class GeminiRepositoryImpl(
         } catch (e: Exception) {
             Log.e("GeminiRepo", "Error generating question from Gemini API", e)
             Result.failure(e)
+        }
+    }
+
+    private fun cleanApiResponse(rawText: String): String {
+        val startIndex = rawText.indexOf('{')
+        val endIndex = rawText.lastIndexOf('}')
+        return if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+            rawText.substring(startIndex, endIndex + 1)
+        } else {
+            rawText
         }
     }
 }
