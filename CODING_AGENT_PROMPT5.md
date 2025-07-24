@@ -181,3 +181,89 @@
     *   Call `SettingsCardItem` for the "Gemini API Key" setting. Use `Icons.Default.Key` for the icon and a masked version of the API key for the subtitle. Wire its `onClick` to the API key dialog.
     *   Call `SettingsHeader(text = "Legal")`.
     *   Call `SettingsCardItem` for "Terms & Conditions", "Privacy Policy", and "Data Protection", using appropriate icons (`Description`, `Shield`, `Policy`) and wiring their `onClick` handlers to navigate to the `LegalActivity`."
+
+## Phase 25: User Level Summary Card
+
+### Step 25.1: Update `HomeViewModel` to Expose User Data
+**Goal:** Modify the `HomeViewModel` to provide the full `User` object to the UI, not just a success state.
+**Context:** `HomeViewModel` currently manages a `HomeUiState` that hides the user object inside the `Success` state.
+**Prompt:**
+"Modify `com.vpk.sprachninja.presentation.viewmodel.HomeViewModel.kt` and its associated `HomeUiState`.
+1.  **Change the State:** Modify the `HomeUiState.Success` data class to hold the `User` object directly. It should look like this: `data class Success(val user: com.vpk.sprachninja.data.local.User) : HomeUiState`.
+2.  **Update the ViewModel:** In the `HomeViewModel`'s `init` block, adjust the logic that collects from the `GetUserUseCase`. When a non-null user is found, it should now emit `HomeUiState.Success(user)`."
+
+---
+
+### Step 25.2: Create the `UserSummaryCard` Composable
+**Goal:** Build a reusable `Card` to display the user's name and current level prominently.
+**Context:** This will be a new composable inside `HomeActivity.kt`.
+**Prompt:**
+"In `com.vpk.sprachninja.HomeActivity.kt`, create a new private `@Composable` function named `UserSummaryCard`.
+1.  It should accept a single parameter: `user: com.vpk.sprachninja.data.local.User`.
+2.  The root should be a `Card` that fills the max width.
+3.  Inside the card, use a `Row` with padding and `verticalAlignment = Alignment.CenterVertically`.
+4.  The `Row` should contain:
+    *   An `Icon` using `Icons.Default.Person`.
+    *   A `Spacer`.
+    *   A `Column` that displays the `user.username` as a title and `"Current Level: ${user.germanLevel}"` as a subtitle."
+
+---
+## Phase 26: Distinct Practice Mode Buttons
+
+### Step 26.1: Create the `PracticeModeButton` Composable
+**Goal:** Build a reusable, styled button for each practice mode to make the UI consistent.
+**Context:** This will be a new composable inside `HomeActivity.kt`.
+**Prompt:**
+"In `com.vpk.sprachninja.HomeActivity.kt`, create a new private `@Composable` function named `PracticeModeButton`.
+1.  It should accept parameters: `text: String`, `icon: ImageVector`, and `onClick: () -> Unit`.
+2.  The root composable should be an `OutlinedButton` with a `Modifier.height(100.dp)`.
+3.  Inside the button, use a `Column` with `horizontalAlignment = Alignment.CenterHorizontally` to arrange an `Icon` and a `Text` vertically."
+
+---
+### Step 26.2: Rebuild the Home Screen with New Components
+**Goal:** Replace the current welcome message and single button with the new, structured layout.
+**Context:** The `WelcomeScreen` composable in `HomeActivity.kt` is the main layout container.
+**Prompt:**
+"Modify the `WelcomeScreen` composable in `com.vpk.sprachninja.HomeActivity.kt`.
+1.  The composable should now accept the full `user` object.
+2.  Remove the old `Text` and `Button`. Replace them with a `Column` that has `verticalArrangement = Arrangement.spacedBy(24.dp)`.
+3.  Inside the `Column`, add the following:
+    *   A `Text` for the "Willkommen, [username]!" message.
+    *   The `UserSummaryCard(user = user)` you just created.
+    *   A `Text` header that says "Choose Your Practice:".
+    *   A `Row` with `Arrangement.spacedBy(16.dp)` that contains three calls to your `PracticeModeButton` composable: one for "Learn Words", one for "Grammar", and one for "Translate".
+    *   Wire each button's `onClick` to launch `QuestionAnswerActivity` with the correct `questionType` string extra (`"MULTIPLE_CHOICE_WORD"`, `"FILL_IN_THE_BLANK"`, `"TRANSLATE_EN_DE"`)."
+
+---
+## Phase 27: "Tip of the Day" Feature
+
+### Step 27.1: Add `getDailyTip` to Gemini Repository
+**Goal:** Create a new function in the repository to fetch a daily tip from the Gemini API.
+**Context:** The `GeminiRepository` and `GeminiRepositoryImpl` files exist.
+**Prompt:**
+"This is a two-part task for the `GeminiRepository`.
+
+1.  **Update Interface:** In `domain/repository/GeminiRepository.kt`, add a new `suspend` function: `suspend fun getDailyTip(userLevel: String): Result<String>`.
+2.  **Update Implementation:** In `data/repository/GeminiRepositoryImpl.kt`, implement `getDailyTip`. It should build a new prompt asking the LLM for a single, short, interesting tip about German language or culture suitable for the provided `userLevel`. The function should call the Gemini API and return the resulting text string inside a `Result.success` wrapper."
+
+---
+### Step 27.2: Update `HomeViewModel` to Fetch and Cache the Tip
+**Goal:** Add the logic to the ViewModel to fetch the tip and store it for the day to prevent excessive API calls.
+**Context:** The `SettingsRepository` (which uses `EncryptedSharedPreferences`) can be used for simple caching.
+**Prompt:**
+"Modify `com.vpk.sprachninja.presentation.viewmodel.HomeViewModel.kt`.
+1.  Inject `GeminiRepository` and `SettingsRepository` into the ViewModel (and update `ViewModelFactory`).
+2.  Expose a new `StateFlow<String?>` for the `dailyTip`.
+3.  Create a private function `fetchDailyTip(userLevel: String)`. This function should first check `SharedPreferences` for a tip saved with the current date as part of the key.
+4.  If a cached tip is found, update the state flow. If not, call `geminiRepository.getDailyTip()`, save the result to `SharedPreferences` with the date, and then update the state flow.
+5.  Call this new function from the `init` block after the user's level is known."
+
+---
+### Step 27.3: Display the "Tip of the Day" Card in the UI
+**Goal:** Show the fetched tip in a new card on the home screen.
+**Context:** `WelcomeScreen` in `HomeActivity.kt` is the target.
+**Prompt:**
+"Modify the `WelcomeScreen` composable in `com.vpk.sprachninja.HomeActivity.kt`.
+1.  The composable should accept the new `dailyTip: String?` state from the ViewModel.
+2.  At the bottom of the main `Column`, add a `Card`.
+3.  Inside the card, display a title like "💡 Tip of the Day" and the `dailyTip` string. Show a loading indicator if the tip is being fetched or an error message if it fails."

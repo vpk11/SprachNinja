@@ -20,12 +20,12 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -95,80 +95,79 @@ fun SettingsScreen(
                 )
             }
         ) { paddingValues ->
-            Surface(modifier = Modifier.padding(paddingValues)) {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    item {
-                        SettingsHeader(text = "Account")
-                    }
-                    item {
-                        SettingsCardItem(
-                            title = user?.username ?: "Account",
-                            subtitle = "Level: ${user?.germanLevel ?: "..."}",
-                            icon = Icons.Default.Person,
-                            onClick = { showLevelDialog = true }
-                        )
-                    }
+            LazyColumn(
+                modifier = Modifier.padding(paddingValues),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                item {
+                    SettingsHeader(text = "Account")
+                }
+                item {
+                    SettingsCardItem(
+                        title = user?.username ?: "Account",
+                        subtitle = "Level: ${user?.germanLevel ?: "..."}",
+                        icon = Icons.Default.Person,
+                        onClick = { showLevelDialog = true }
+                    )
+                }
 
-                    item {
-                        SettingsHeader(text = "API Configuration")
-                    }
-                    item {
-                        val apiKeySubtitle = if (settings.apiKey.isNotBlank()) "••••••••••••••••" else "Not set"
-                        SettingsCardItem(
-                            title = "Gemini API Key",
-                            subtitle = apiKeySubtitle,
-                            icon = Icons.Filled.Key,
-                            onClick = { showApiDialog = true }
-                        )
-                    }
+                item {
+                    SettingsHeader(text = "API Configuration")
+                }
+                item {
+                    val apiKeySubtitle = if (settings.apiKey.isNotBlank()) "••••••••••••••••" else "Not set"
+                    SettingsCardItem(
+                        title = "Gemini API Key",
+                        subtitle = apiKeySubtitle,
+                        icon = Icons.Filled.Key,
+                        onClick = { showApiDialog = true }
+                    )
+                }
 
-                    item {
-                        SettingsHeader(text = "Legal")
-                    }
-                    item {
-                        SettingsCardItem(
-                            title = "Terms & Conditions",
-                            subtitle = "Read our terms of service",
-                            icon = Icons.Filled.Description,
-                            onClick = {
-                                navigateToLegal(
-                                    context = context,
-                                    titleResId = R.string.terms_and_conditions_title,
-                                    contentResId = R.string.terms_and_conditions_content
-                                )
-                            }
-                        )
-                    }
-                    item {
-                        SettingsCardItem(
-                            title = "Privacy Policy",
-                            subtitle = "How we handle your data",
-                            icon = Icons.Filled.Shield, // Corrected
-                            onClick = {
-                                navigateToLegal(
-                                    context = context,
-                                    titleResId = R.string.privacy_policy_title,
-                                    contentResId = R.string.privacy_policy_content
-                                )
-                            }
-                        )
-                    }
-                    item {
-                        SettingsCardItem(
-                            title = "Data Protection",
-                            subtitle = "Information about on-device storage",
-                            icon = Icons.Filled.Policy,
-                            onClick = {
-                                navigateToLegal(
-                                    context = context,
-                                    titleResId = R.string.data_protection_title,
-                                    contentResId = R.string.data_protection_content
-                                )
-                            }
-                        )
-                    }
+                item {
+                    SettingsHeader(text = "Legal")
+                }
+                item {
+                    SettingsCardItem(
+                        title = "Terms & Conditions",
+                        subtitle = "Read our terms of service",
+                        icon = Icons.Filled.Description,
+                        onClick = {
+                            navigateToLegal(
+                                context = context,
+                                titleResId = R.string.terms_and_conditions_title,
+                                contentResId = R.string.terms_and_conditions_content
+                            )
+                        }
+                    )
+                }
+                item {
+                    SettingsCardItem(
+                        title = "Privacy Policy",
+                        subtitle = "How we handle your data",
+                        icon = Icons.Filled.Shield,
+                        onClick = {
+                            navigateToLegal(
+                                context = context,
+                                titleResId = R.string.privacy_policy_title,
+                                contentResId = R.string.privacy_policy_content
+                            )
+                        }
+                    )
+                }
+                item {
+                    SettingsCardItem(
+                        title = "Data Protection",
+                        subtitle = "Information about on-device storage",
+                        icon = Icons.Filled.Policy,
+                        onClick = {
+                            navigateToLegal(
+                                context = context,
+                                titleResId = R.string.data_protection_title,
+                                contentResId = R.string.data_protection_content
+                            )
+                        }
+                    )
                 }
             }
         }
@@ -206,7 +205,10 @@ private fun SettingsCardItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
