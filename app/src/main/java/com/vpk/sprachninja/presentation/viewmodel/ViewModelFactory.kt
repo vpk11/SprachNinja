@@ -12,7 +12,9 @@ import com.vpk.sprachninja.domain.usecase.UpdateUserLevelUseCase
 
 class ViewModelFactory(
     private val appContainer: AppContainer,
-    private val context: Context
+    private val context: Context,
+    // Add nullable parameter for data that only some ViewModels need
+    private val questionType: String? = null
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -37,12 +39,14 @@ class ViewModelFactory(
                 ) as T
             }
             modelClass.isAssignableFrom(QuestionAnswerViewModel::class.java) -> {
+                requireNotNull(questionType) { "QuestionType must be provided for QuestionAnswerViewModel" }
                 QuestionAnswerViewModel(
                     geminiRepository = appContainer.geminiRepository,
                     userRepository = appContainer.userRepository,
                     recentQuestionRepository = appContainer.recentQuestionRepository,
                     levelStatsRepository = appContainer.levelStatsRepository,
-                    context = context
+                    context = context,
+                    questionType = questionType
                 ) as T
             }
             modelClass.isAssignableFrom(ProfileViewModel::class.java) -> {
