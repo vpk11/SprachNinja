@@ -1,0 +1,64 @@
+# Gradle files
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration files
+local.properties
+
+# Log files
+*.log
+
+# Android Studio files
+.idea/
+*.iml
+
+# Keystore files
+*.jks
+*.keystore
+
+# Proguard files
+proguard/
+proguard-project.txt
+
+# APK and AAB files
+*.apk
+*.ap_
+*.aab
+
+# Generated files
+captures/
+output.json
+
+# NDK
+obj/
+*.so
+
+# Misc
+.DS_Store
+*.swp
+
+# Crashlytics
+crashlytics-build.properties
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+
+# Flutter
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+
+# IntelliJ
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+# Node modules
+node_modules/
