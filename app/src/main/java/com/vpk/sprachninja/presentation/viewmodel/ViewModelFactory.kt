@@ -45,6 +45,12 @@ class ViewModelFactory(
                     context = context
                 ) as T
             }
+            modelClass.isAssignableFrom(ProfileViewModel::class.java) -> {
+                ProfileViewModel(
+                    userRepository = appContainer.userRepository,
+                    levelStatsRepository = appContainer.levelStatsRepository
+                ) as T
+            }
             else -> {
                 throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
             }
