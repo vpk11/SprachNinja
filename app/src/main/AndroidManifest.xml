@@ -45,6 +45,11 @@
             android:name=".presentation.ui.view.QuestionAnswerActivity"
             android:exported="false"
             android:theme="@style/Theme.SprachNinja" />
+
+        <activity
+            android:name=".presentation.ui.view.ProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SprachNinja" />
     </application>
 
 </manifest>

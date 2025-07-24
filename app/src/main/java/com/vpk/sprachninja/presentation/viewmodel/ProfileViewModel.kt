@@ -6,15 +6,18 @@ import com.vpk.sprachninja.data.local.LevelStats
 import com.vpk.sprachninja.data.local.User
 import com.vpk.sprachninja.domain.repository.LevelStatsRepository
 import com.vpk.sprachninja.domain.repository.UserRepository
+import com.vpk.sprachninja.domain.usecase.UpdateUserLevelUseCase
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class ProfileViewModel(
     private val userRepository: UserRepository,
-    private val levelStatsRepository: LevelStatsRepository
+    private val levelStatsRepository: LevelStatsRepository,
+    private val updateUserLevelUseCase: UpdateUserLevelUseCase // Added
 ) : ViewModel() {
 
     /**
@@ -42,4 +45,14 @@ class ProfileViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null
     )
+
+    /**
+     * Updates the user's German proficiency level.
+     * @param newLevel The new level to be saved.
+     */
+    fun updateUserLevel(newLevel: String) {
+        viewModelScope.launch {
+            updateUserLevelUseCase(newLevel)
+        }
+    }
 }

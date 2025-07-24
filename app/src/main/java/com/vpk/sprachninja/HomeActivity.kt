@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.vpk.sprachninja.presentation.ui.view.OnboardingActivity
+import com.vpk.sprachninja.presentation.ui.view.ProfileActivity
 import com.vpk.sprachninja.presentation.ui.view.QuestionAnswerActivity
 import com.vpk.sprachninja.presentation.ui.view.SettingsActivity
 import com.vpk.sprachninja.presentation.viewmodel.HomeUiState
@@ -80,6 +82,14 @@ fun WelcomeScreen(username: String) {
             TopAppBar(
                 title = { Text(stringResource(id = R.string.app_name)) },
                 actions = {
+                    IconButton(onClick = {
+                        context.startActivity(Intent(context, ProfileActivity::class.java))
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.AccountCircle,
+                            contentDescription = "My Profile"
+                        )
+                    }
                     IconButton(onClick = {
                         context.startActivity(Intent(context, SettingsActivity::class.java))
                     }) {

@@ -48,7 +48,8 @@ class ViewModelFactory(
             modelClass.isAssignableFrom(ProfileViewModel::class.java) -> {
                 ProfileViewModel(
                     userRepository = appContainer.userRepository,
-                    levelStatsRepository = appContainer.levelStatsRepository
+                    levelStatsRepository = appContainer.levelStatsRepository,
+                    updateUserLevelUseCase = UpdateUserLevelUseCase(appContainer.userRepository)
                 ) as T
             }
             else -> {
