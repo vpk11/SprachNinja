@@ -8,7 +8,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -30,6 +35,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.vpk.sprachninja.domain.model.PracticeQuestion
@@ -45,7 +52,6 @@ fun QuestionAnswerScreen(
     onNavigateUp: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    // Collect the new states as well
     val userAnswer by viewModel.userAnswer.collectAsState()
     val validationState by viewModel.validationState.collectAsState()
 
@@ -63,7 +69,8 @@ fun QuestionAnswerScreen(
                         }
                     }
                 )
-            }
+            },
+            modifier = Modifier.imePadding()
         ) { paddingValues ->
             Box(
                 modifier = Modifier
@@ -73,14 +80,9 @@ fun QuestionAnswerScreen(
                 contentAlignment = Alignment.Center
             ) {
                 when (val state = uiState) {
-                    is QuestionUiState.Loading -> {
-                        CircularProgressIndicator()
-                    }
-                    is QuestionUiState.Error -> {
-                        ErrorState(message = state.message, onRetry = { viewModel.loadNextQuestion() })
-                    }
+                    is QuestionUiState.Loading -> CircularProgressIndicator()
+                    is QuestionUiState.Error -> ErrorState(message = state.message, onRetry = { viewModel.loadNextQuestion() })
                     is QuestionUiState.Success -> {
-                        // Pass all the new state and events to the SuccessState
                         SuccessState(
                             question = state.question,
                             userAnswer = userAnswer,
@@ -98,19 +100,22 @@ fun QuestionAnswerScreen(
 
 @Composable
 private fun SuccessState(
-    question: PracticeQuestion, // <-- CORRECTED: Now accepts PracticeQuestion
+    question: PracticeQuestion,
     userAnswer: String,
     onAnswerChange: (String) -> Unit,
     validationState: ValidationState,
     onCheckAnswer: () -> Unit,
     onNext: () -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
+
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Use the `questionText` property from the object
         Text(
             text = question.questionText,
             style = MaterialTheme.typography.titleLarge,
@@ -123,20 +128,28 @@ private fun SuccessState(
             onValueChange = onAnswerChange,
             label = { Text("Your answer") },
             modifier = Modifier.fillMaxWidth(),
-            // Show correct/incorrect icons based on validation state
             trailingIcon = {
                 when (validationState) {
                     ValidationState.CORRECT -> Icon(Icons.Filled.Check, "Correct", tint = Color.Green)
                     ValidationState.INCORRECT -> Icon(Icons.Filled.Close, "Incorrect", tint = MaterialTheme.colorScheme.error)
-                    ValidationState.UNCHECKED -> Unit // Show nothing
+                    ValidationState.UNCHECKED -> Unit
                 }
             },
-            // The text field is read-only after the answer has been checked
-            readOnly = validationState != ValidationState.UNCHECKED
+            readOnly = validationState != ValidationState.UNCHECKED,
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done // Use "Done" action on keyboard
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    if (validationState == ValidationState.UNCHECKED) {
+                        onCheckAnswer()
+                        focusManager.clearFocus() // Hide keyboard on action
+                    }
+                }
+            )
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Show the correct answer if the user was wrong
         if (validationState == ValidationState.INCORRECT) {
             Text(
                 text = "Correct answer: ${question.correctAnswer}",
@@ -147,20 +160,20 @@ private fun SuccessState(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Use a Row to hold the buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            // "Check Answer" button is only enabled before checking
             Button(
-                onClick = onCheckAnswer,
+                onClick = {
+                    onCheckAnswer()
+                    focusManager.clearFocus()
+                },
                 enabled = validationState == ValidationState.UNCHECKED
             ) {
                 Text("Check Answer")
             }
 
-            // "Next Question" button is only visible after checking
             if (validationState != ValidationState.UNCHECKED) {
                 TextButton(onClick = onNext) {
                     Text("Next Question")
