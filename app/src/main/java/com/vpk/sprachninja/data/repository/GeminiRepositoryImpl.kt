@@ -34,7 +34,6 @@ class GeminiRepositoryImpl(
                 return Result.failure(Exception("Gemini API key is not set. Please set it in the settings."))
             }
 
-            // Build the prompt based on the requested question type
             val fullPrompt = buildPrompt(userLevel, topic, questionType, recentQuestions)
 
             val request = GeminiRequest(
@@ -131,6 +130,52 @@ class GeminiRepositoryImpl(
         }
     }
 
+    override suspend fun getDailyTip(userLevel: String): Result<String> {
+        return try {
+            val settings = settingsRepository.getSettings().first()
+            val apiKey = settings.apiKey
+            val modelName = settings.modelName
+
+            if (apiKey.isBlank()) {
+                return Result.failure(Exception("Gemini API key is not set."))
+            }
+
+            val tipPrompt = """
+                You are an encouraging German language expert.
+                Generate a single, short, and interesting tip about the German language, grammar, or culture that would be helpful for a student at the $userLevel level.
+                The tip should be no more than two sentences.
+                
+                CRITICAL INSTRUCTIONS:
+                - Do not use markdown.
+                - Do not use JSON.
+                - Return only the raw text of the tip.
+                
+                EXAMPLE:
+                Did you know? In German, all nouns are capitalized, no matter where they appear in a sentence. This can make them easier to spot!
+            """.trimIndent()
+
+            val request = GeminiRequest(
+                contents = listOf(Content(parts = listOf(Part(text = tipPrompt))))
+            )
+
+            val response = geminiApiService.generateContent(
+                model = modelName,
+                apiKey = apiKey,
+                request = request
+            )
+
+            val rawText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+            if (rawText != null) {
+                Result.success(rawText.trim())
+            } else {
+                Result.failure(Exception("The API did not return a tip."))
+            }
+        } catch (e: Exception) {
+            Log.e("GeminiRepo", "Error fetching daily tip from Gemini API", e)
+            Result.failure(e)
+        }
+    }
+
     private fun buildPrompt(
         userLevel: String,
         topic: String,
@@ -166,7 +211,6 @@ class GeminiRepositoryImpl(
                 The "correctAnswer" key should be the correct English translation.
                 The "options" key must be an array of three strings: the correct answer and the two incorrect distractors in a random order.
             """.trimIndent()
-
             "TRANSLATE_EN_DE" -> """
                 You are an expert German teacher creating a translation exercise.
                 Your task is to generate a simple English sentence for a German student at the $userLevel level to translate.
@@ -181,7 +225,6 @@ class GeminiRepositoryImpl(
                 The "questionText" key should be the English sentence to translate.
                 The "correctAnswer" key should be the correct full German translation.
             """.trimIndent()
-
             "FILL_IN_THE_BLANK" -> """
                 You are an expert German teacher. Your task is to generate one single, high-quality, unambiguous fill-in-the-blank question in German.
                 Your task is to generate a question for a student at the $userLevel level.
@@ -201,7 +244,6 @@ class GeminiRepositoryImpl(
                 The "questionText" key should be the German sentence with "___" as the blank.
                 The "correctAnswer" key should contain ONLY the word or phrase that fits in the blank.
             """.trimIndent()
-
             else -> throw IllegalArgumentException("Unsupported question type: $questionType")
         }
     }
