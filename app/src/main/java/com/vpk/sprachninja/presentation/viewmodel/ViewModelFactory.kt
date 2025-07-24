@@ -8,6 +8,7 @@ import com.vpk.sprachninja.domain.usecase.GetSettingsUseCase
 import com.vpk.sprachninja.domain.usecase.GetUserUseCase
 import com.vpk.sprachninja.domain.usecase.SaveSettingsUseCase
 import com.vpk.sprachninja.domain.usecase.SaveUserUseCase
+import com.vpk.sprachninja.domain.usecase.UpdateUserLevelUseCase
 
 class ViewModelFactory(
     private val appContainer: AppContainer,
@@ -30,14 +31,15 @@ class ViewModelFactory(
             modelClass.isAssignableFrom(SettingsViewModel::class.java) -> {
                 SettingsViewModel(
                     getSettingsUseCase = GetSettingsUseCase(appContainer.settingsRepository),
-                    saveSettingsUseCase = SaveSettingsUseCase(appContainer.settingsRepository)
+                    saveSettingsUseCase = SaveSettingsUseCase(appContainer.settingsRepository),
+                    getUserUseCase = GetUserUseCase(appContainer.userRepository),
+                    updateUserLevelUseCase = UpdateUserLevelUseCase(appContainer.userRepository)
                 ) as T
             }
             modelClass.isAssignableFrom(QuestionAnswerViewModel::class.java) -> {
                 QuestionAnswerViewModel(
                     geminiRepository = appContainer.geminiRepository,
                     userRepository = appContainer.userRepository,
-                    // Provide the new dependency from the AppContainer
                     recentQuestionRepository = appContainer.recentQuestionRepository,
                     context = context
                 ) as T

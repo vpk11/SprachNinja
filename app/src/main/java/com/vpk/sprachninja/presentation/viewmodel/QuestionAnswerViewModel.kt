@@ -69,7 +69,9 @@ class QuestionAnswerViewModel(
 
                 // 3. Modify the prompt to include the exclusion list.
                 val prompt = """
-                    Generate a single German grammar or vocabulary question about the topic '$randomTopic' for a learner at level ${user.germanLevel}.
+                    You are an expert German teacher. Your task is to generate one single, high-quality, unambiguous fill-in-the-blank question in German. 
+                    Context:
+                    - Level: ${user.germanLevel}.
                     
                     CRITICAL: Do not generate any of the following questions again:
                     $exclusionList

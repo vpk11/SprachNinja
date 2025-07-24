@@ -26,7 +26,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -35,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import com.vpk.sprachninja.R
 import com.vpk.sprachninja.presentation.viewmodel.SettingsViewModel
 import com.vpk.sprachninja.ui.theme.SprachNinjaTheme
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,22 +42,31 @@ fun SettingsScreen(
     onNavigateUp: () -> Unit
 ) {
     val settings by viewModel.settings.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
-    var showDialog by remember { mutableStateOf(false) }
+    val user by viewModel.user.collectAsState()
 
-    // Get the context to use for starting activities
+    var showApiDialog by remember { mutableStateOf(false) }
+    var showLevelDialog by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
 
-    if (showDialog) {
+    if (showApiDialog) {
         SettingsDialog(
             initialApiKey = settings.apiKey,
             initialModelName = settings.modelName,
-            onDismissRequest = { showDialog = false },
+            onDismissRequest = { showApiDialog = false },
             onConfirmation = { apiKey, modelName ->
-                coroutineScope.launch {
-                    viewModel.saveSettings(apiKey, modelName)
-                }
-                showDialog = false
+                viewModel.saveSettings(apiKey, modelName)
+                showApiDialog = false
+            }
+        )
+    }
+
+    if (showLevelDialog) {
+        LevelSelectorDialog(
+            onDismissRequest = { showLevelDialog = false },
+            onLevelSelected = { newLevel ->
+                viewModel.updateUserLevel(newLevel)
+                showLevelDialog = false
             }
         )
     }
@@ -87,7 +94,14 @@ fun SettingsScreen(
                         SettingsItem(
                             title = "Gemini API Key",
                             subtitle = apiKeySubtitle,
-                            onClick = { showDialog = true }
+                            onClick = { showApiDialog = true }
+                        )
+                    }
+                    item {
+                        SettingsItem(
+                            title = "My Level",
+                            subtitle = user?.germanLevel ?: "Loading...",
+                            onClick = { showLevelDialog = true }
                         )
                     }
                     item {
@@ -132,9 +146,6 @@ fun SettingsScreen(
     }
 }
 
-/**
- * A helper function to launch the LegalActivity with the correct extras.
- */
 private fun navigateToLegal(context: Context, titleResId: Int, contentResId: Int) {
     val intent = Intent(context, LegalActivity::class.java).apply {
         putExtra(LegalActivity.EXTRA_TITLE_RES_ID, titleResId)
