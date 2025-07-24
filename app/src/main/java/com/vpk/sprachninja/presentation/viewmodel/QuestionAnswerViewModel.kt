@@ -8,6 +8,7 @@ import com.vpk.sprachninja.R
 import com.vpk.sprachninja.data.local.RecentQuestion
 import com.vpk.sprachninja.data.model.Curriculum
 import com.vpk.sprachninja.domain.repository.GeminiRepository
+import com.vpk.sprachninja.domain.repository.LevelStatsRepository
 import com.vpk.sprachninja.domain.repository.RecentQuestionRepository
 import com.vpk.sprachninja.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,8 @@ enum class ValidationState {
 class QuestionAnswerViewModel(
     private val geminiRepository: GeminiRepository,
     private val userRepository: UserRepository,
-    private val recentQuestionRepository: RecentQuestionRepository, // 1. Add new repository
+    private val recentQuestionRepository: RecentQuestionRepository,
+    private val levelStatsRepository: LevelStatsRepository,
     private val context: Context
 ) : ViewModel() {
 
@@ -55,7 +57,6 @@ class QuestionAnswerViewModel(
                     return@launch
                 }
 
-                // 2. Fetch the list of recent questions for the user's level.
                 val recentQuestions = recentQuestionRepository.getRecentQuestionsForLevel(user.germanLevel)
                 val exclusionList = recentQuestions.joinToString(separator = "\n") { "- ${it.questionText}" }
 
@@ -67,7 +68,6 @@ class QuestionAnswerViewModel(
 
                 val randomTopic = topics.random()
 
-                // 3. Modify the prompt to include the exclusion list.
                 val prompt = """
                     You are an expert German teacher. Your task is to generate one single, high-quality, unambiguous fill-in-the-blank question in German. 
                     Context:
@@ -81,7 +81,6 @@ class QuestionAnswerViewModel(
 
                 result.onSuccess { practiceQuestion ->
                     _uiState.value = QuestionUiState.Success(practiceQuestion)
-                    // 4. On success, insert the new question into our database.
                     val newRecentQuestion = RecentQuestion(
                         questionText = practiceQuestion.questionText,
                         userLevel = user.germanLevel
@@ -106,6 +105,17 @@ class QuestionAnswerViewModel(
                 ignoreCase = true
             )
             _validationState.value = if (isCorrect) ValidationState.CORRECT else ValidationState.INCORRECT
+
+            viewModelScope.launch {
+                val user = userRepository.getUser().first()
+                if (user != null) {
+                    if (isCorrect) {
+                        levelStatsRepository.incrementCorrectCount(user.germanLevel)
+                    } else {
+                        levelStatsRepository.incrementWrongCount(user.germanLevel)
+                    }
+                }
+            }
         }
     }
 

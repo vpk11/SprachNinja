@@ -41,6 +41,7 @@ class ViewModelFactory(
                     geminiRepository = appContainer.geminiRepository,
                     userRepository = appContainer.userRepository,
                     recentQuestionRepository = appContainer.recentQuestionRepository,
+                    levelStatsRepository = appContainer.levelStatsRepository,
                     context = context
                 ) as T
             }
