@@ -6,6 +6,7 @@ import com.vpk.sprachninja.data.remote.dto.Content
 import com.vpk.sprachninja.data.remote.dto.GeminiRequest
 import com.vpk.sprachninja.data.remote.dto.Part
 import com.vpk.sprachninja.domain.model.PracticeQuestion
+import com.vpk.sprachninja.domain.model.TranslationValidationResult
 import com.vpk.sprachninja.domain.repository.GeminiRepository
 import com.vpk.sprachninja.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
@@ -63,6 +64,74 @@ class GeminiRepositoryImpl(
             }
         } catch (e: Exception) {
             Log.e("GeminiRepo", "Error generating question from Gemini API", e)
+            Result.failure(e)
+        }
+    }
+
+    // --- REFACTORED FUNCTION ---
+    override suspend fun validateTranslation(
+        originalQuestion: String,
+        expectedAnswer: String,
+        userAnswer: String
+    ): Result<TranslationValidationResult> {
+        // Add a single return statement at the top of the try-catch expression
+        return try {
+            val settings = settingsRepository.getSettings().first()
+            val apiKey = settings.apiKey
+            val modelName = settings.modelName
+
+            if (apiKey.isBlank()) {
+                // Throw an exception here, which will be caught by the outer catch block
+                throw IllegalStateException("Gemini API key is not set.")
+            }
+
+            val validationPrompt = """
+                You are a German language teaching assistant. Your task is to evaluate a student's translation from English to German.
+
+                CONTEXT:
+                - Original English Sentence: "$originalQuestion"
+                - A sample correct German translation: "$expectedAnswer"
+                - The student's submitted German translation: "$userAnswer"
+
+                EVALUATION CRITERIA:
+                1.  Determine if the student's translation is grammatically correct and semantically equivalent to the original English sentence.
+                2.  Minor differences in word choice (synonyms) or word order are acceptable if the meaning is the same and the sentence is natural-sounding.
+                3.  For example, if the original is "I'm going to the cinema" and the student writes "Ich gehe ins Kino", "Ich gehe zum Kino", or "Ich fahre ins Kino", all are correct.
+
+                OUTPUT:
+                You MUST return ONLY a single, raw JSON object with no extra text or markdown.
+                The JSON object must have the following keys:
+                - "isCorrect": A boolean (`true` or `false`).
+                - "feedback": A brief, helpful string for the student. If correct, say "Correct!" or "Great job!". If incorrect, briefly explain the mistake (e.g., "Good try, but the verb should be at the end of the sentence.").
+            """.trimIndent()
+
+            val request = GeminiRequest(
+                contents = listOf(Content(parts = listOf(Part(text = validationPrompt))))
+            )
+
+            val response = geminiApiService.generateContent(
+                model = modelName,
+                apiKey = apiKey,
+                request = request
+            )
+
+            val rawText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+            if (rawText != null) {
+                val cleanedJson = cleanApiResponse(rawText)
+                try {
+                    val result = json.decodeFromString<TranslationValidationResult>(cleanedJson)
+                    Result.success(result)
+                } catch (e: Exception) {
+                    Log.e("GeminiRepo", "JSON Parsing failed for validation: ${e.message}. Cleaned text: $cleanedJson", e)
+                    Result.failure(Exception("Failed to parse the validation from the API response."))
+                }
+            } else {
+                // This value will now be returned by the outer try-catch
+                Result.failure(Exception("The API did not return any validation content."))
+            }
+        } catch (e: Exception) {
+            Log.e("GeminiRepo", "Error validating translation via Gemini API", e)
+            // This is the return value for any thrown exception
             Result.failure(e)
         }
     }

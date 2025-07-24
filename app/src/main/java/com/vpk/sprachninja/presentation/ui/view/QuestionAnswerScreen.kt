@@ -54,6 +54,8 @@ fun QuestionAnswerScreen(
     val uiState by viewModel.uiState.collectAsState()
     val userAnswer by viewModel.userAnswer.collectAsState()
     val validationState by viewModel.validationState.collectAsState()
+    // 1. Collect the new feedback state
+    val validationFeedback by viewModel.validationFeedback.collectAsState()
 
     SprachNinjaTheme {
         Scaffold(
@@ -88,6 +90,8 @@ fun QuestionAnswerScreen(
                             userAnswer = userAnswer,
                             onAnswerChange = { viewModel.userAnswer.value = it },
                             validationState = validationState,
+                            // 2. Pass the feedback down to the SuccessState
+                            validationFeedback = validationFeedback,
                             onCheckAnswer = { viewModel.checkAnswer() },
                             onNext = { viewModel.loadNextQuestion() }
                         )
@@ -104,6 +108,7 @@ private fun SuccessState(
     userAnswer: String,
     onAnswerChange: (String) -> Unit,
     validationState: ValidationState,
+    validationFeedback: String?, // 3. Accept the new feedback parameter
     onCheckAnswer: () -> Unit,
     onNext: () -> Unit
 ) {
@@ -137,24 +142,27 @@ private fun SuccessState(
             },
             readOnly = validationState != ValidationState.UNCHECKED,
             keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Done // Use "Done" action on keyboard
+                imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
                 onDone = {
                     if (validationState == ValidationState.UNCHECKED) {
                         onCheckAnswer()
-                        focusManager.clearFocus() // Hide keyboard on action
+                        focusManager.clearFocus()
                     }
                 }
             )
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (validationState == ValidationState.INCORRECT) {
+        // 4. Display the feedback from the ViewModel
+        if (validationState != ValidationState.UNCHECKED && !validationFeedback.isNullOrBlank()) {
             Text(
-                text = "Correct answer: ${question.correctAnswer}",
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge
+                text = validationFeedback,
+                color = if (validationState == ValidationState.CORRECT) Color.Green else MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
@@ -169,9 +177,13 @@ private fun SuccessState(
                     onCheckAnswer()
                     focusManager.clearFocus()
                 },
-                enabled = validationState == ValidationState.UNCHECKED
+                enabled = validationState == ValidationState.UNCHECKED && userAnswer.isNotBlank()
             ) {
-                Text("Check Answer")
+                if (validationFeedback == "Checking...") {
+                    CircularProgressIndicator(modifier = Modifier.height(24.dp))
+                } else {
+                    Text("Check Answer")
+                }
             }
 
             if (validationState != ValidationState.UNCHECKED) {

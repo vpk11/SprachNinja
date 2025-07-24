@@ -1,6 +1,7 @@
 package com.vpk.sprachninja.domain.repository
 
 import com.vpk.sprachninja.domain.model.PracticeQuestion
+import com.vpk.sprachninja.domain.model.TranslationValidationResult
 
 /**
  * An interface that defines the contract for generating content via the Gemini API.
@@ -24,4 +25,19 @@ interface GeminiRepository {
         questionType: String,
         recentQuestions: List<String>
     ): Result<PracticeQuestion>
+
+    /**
+     * Validates a user's translation against an expected answer using the Gemini API.
+     *
+     * @param originalQuestion The original sentence the user was asked to translate (e.g., in English).
+     * @param expectedAnswer The sample correct answer provided by the API initially.
+     * @param userAnswer The translation provided by the user.
+     * @return A [Result] wrapper containing the [TranslationValidationResult] on success,
+     *         or an exception on failure.
+     */
+    suspend fun validateTranslation(
+        originalQuestion: String,
+        expectedAnswer: String,
+        userAnswer: String
+    ): Result<TranslationValidationResult>
 }
