@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.vpk.sprachninja.presentation.ui.view.OnboardingActivity
+import com.vpk.sprachninja.presentation.ui.view.QuestionAnswerActivity
 import com.vpk.sprachninja.presentation.ui.view.SettingsActivity
 import com.vpk.sprachninja.presentation.viewmodel.HomeUiState
 import com.vpk.sprachninja.presentation.viewmodel.HomeViewModel
@@ -46,7 +47,9 @@ class HomeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val appContainer = (application as SprachNinjaApp).appContainer
-        val viewModel: HomeViewModel by viewModels { ViewModelFactory(appContainer) }
+        val viewModel: HomeViewModel by viewModels {
+            ViewModelFactory(appContainer, this)
+        }
 
         setContent {
             SprachNinjaTheme {
@@ -92,7 +95,7 @@ fun WelcomeScreen(username: String) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues), // Apply padding from Scaffold
+                .padding(paddingValues),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -101,7 +104,9 @@ fun WelcomeScreen(username: String) {
                 style = MaterialTheme.typography.headlineSmall
             )
             Spacer(modifier = Modifier.height(32.dp))
-            Button(onClick = { /* TODO: Navigate to QuestionAnswerActivity */ }) {
+            Button(onClick = {
+                context.startActivity(Intent(context, QuestionAnswerActivity::class.java))
+            }) {
                 Text("Start Learning")
             }
         }
@@ -109,6 +114,22 @@ fun WelcomeScreen(username: String) {
 }
 
 @Composable
-private fun NavigateToOnboarding() { /* ... */ }
+private fun NavigateToOnboarding() {
+    val context = LocalContext.current
+    LaunchedEffect(key1 = Unit) {
+        val intent = Intent(context, OnboardingActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        context.startActivity(intent)
+    }
+}
+
 @Composable
-fun LoadingScreen() { /* ... */ }
+fun LoadingScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}

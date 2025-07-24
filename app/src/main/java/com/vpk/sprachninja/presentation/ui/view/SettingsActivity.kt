@@ -15,7 +15,7 @@ class SettingsActivity : ComponentActivity() {
 
         val appContainer = (application as SprachNinjaApp).appContainer
         val viewModel: SettingsViewModel by viewModels {
-            ViewModelFactory(appContainer)
+            ViewModelFactory(appContainer, this)
         }
 
         setContent {
