@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">SprachNinja</string>
+    <string name="terms_and_conditions_title">Terms and Conditions</string>
+    <string name="terms_and_conditions_content">This application, SprachNinja, is provided for educational purposes. All user data, including your profile and progress, is stored exclusively on your device. The question generation feature requires you to provide your own API key for the Google Gemini service. Your use of the Gemini service is subject to Google\'s own terms and policies. The developers of SprachNinja are not responsible for your use of the Gemini API.</string>
+
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_content">We respect your privacy. SprachNinja operates entirely offline, with one exception: when it communicates with the Google Gemini API using the API key you provide. This application does not collect, store, or transmit any of your personal data or usage analytics to any servers owned or operated by the developer. All your information remains on your device under your control.</string>
+
+    <string name="data_protection_title">Data Protection</string>
+    <string name="data_protection_content">Your data is your own. All information you generate within SprachNinja, including your username, German level, learning progress, and your securely stored Gemini API key, resides only on your device\'s local storage. This data is not backed up or sent anywhere else. You have full control over this data. To permanently delete all your application data, you can either uninstall the application or clear the application\'s data through your device\'s system settings (Settings -> Apps -> SprachNinja -> Storage -> Clear Data).</string>
 </resources>
