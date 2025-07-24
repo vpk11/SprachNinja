@@ -14,10 +14,13 @@ import kotlinx.serialization.Serializable
  * @property questionType A string identifier for the type of question, which can be used
  *                        by the UI to render different input methods in the future.
  *                        e.g., "FILL_IN_THE_BLANK", "MULTIPLE_CHOICE"
+ * @property options A list of choices for multiple-choice questions. This will be null
+ *                   for other question types.
  */
 @Serializable
 data class PracticeQuestion(
     val questionText: String,
     val correctAnswer: String,
-    val questionType: String
+    val questionType: String,
+    val options: List<String>? = null // Added this line
 )

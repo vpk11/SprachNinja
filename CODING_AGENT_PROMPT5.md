@@ -67,3 +67,71 @@
 1.  The composable should now accept the new `validationFeedback: String?` state from the ViewModel.
 2.  When the `validationState` is `INCORRECT` and `validationFeedback` is not null or blank:
     *   Instead of (or in addition to) showing a simple "Correct answer" string, display the `validationFeedback` text. This will show the user the helpful explanation or correction provided by the LLM. You can display this in a `Text` composable below the answer field."
+
+---
+
+## Phase 23: "Learn Word" Multiple-Choice Feature
+
+### Step 23.1: Evolve the Data Model to Support Options
+**Goal:** Modify the `PracticeQuestion` data model to hold a list of choices for multiple-choice questions.
+**Context:** The `PracticeQuestion` model currently only supports a single question and answer.
+**Prompt:**
+"Modify the `com.vpk.sprachninja.domain.model.PracticeQuestion` data class.
+1.  Add a new property to the data class: `options: List<String>? = null`.
+2.  Make the new property **nullable** and give it a **default value of `null`**. This is critical to ensure that our existing `FILL_IN_THE_BLANK` and `TRANSLATE_EN_DE` question types, which don't use this field, continue to work without modification."
+
+---
+
+### Step 23.2: Enhance the Gemini Repository for Multiple-Choice Questions
+**Goal:** Teach the `GeminiRepository` how to generate a multiple-choice vocabulary question.
+**Context:** The `buildPrompt` function in `GeminiRepositoryImpl.kt` uses a `when` block to create different prompts.
+**Prompt:**
+"Modify the `buildPrompt` function in `com.vpk.sprachninja.data.repository.GeminiRepositoryImpl.kt`.
+1.  Add a new case to the `when` block for a new question type: `"MULTIPLE_CHOICE_WORD"`.
+2.  The prompt for this new case must instruct the LLM to do the following:
+    *   Act as a German teacher creating a vocabulary quiz for a specific level.
+    *   Select **one** German noun, verb, or adjective appropriate for the user's level.
+    *   Provide its single correct English translation.
+    *   Provide **two plausible but incorrect** English translations (distractors).
+    *   Return a JSON object matching the `PracticeQuestion` structure.
+    *   The `questionText` should be the German word.
+    *   The `correctAnswer` should be the correct English translation.
+    *   The `questionType` must be `"MULTIPLE_CHOICE_WORD"`.
+    *   The `options` field must be an array of three strings containing the correct answer and the two distractors, **shuffled randomly**."
+
+---
+
+### Step 23.3: Add the New Mode to the Selection Dialog
+**Goal:** Allow the user to select the new "Learn Word" practice mode from the home screen.
+**Context:** The `PracticeModeDialog.kt` composable displays the list of available practice modes.
+**Prompt:**
+"In `com.vpk.sprachninja.presentation.ui.view.PracticeModeDialog.kt`, add a new `PracticeModeItem` to the `Column` inside the dialog.
+1.  The title should be `"Learn Words"`.
+2.  The description should be `"Multiple choice vocabulary."`
+3.  The `onClick` lambda should call `onModeSelected` with the new question type string: `"MULTIPLE_CHOICE_WORD"`."
+
+---
+
+### Step 23.4: Implement the Multiple-Choice UI
+**Goal:** Render clickable buttons for multiple-choice questions instead of a text field.
+**Context:** `QuestionAnswerScreen.kt` currently uses an `OutlinedTextField` for all question types.
+**Prompt:**
+"Modify the `SuccessState` composable in `com.vpk.sprachninja.presentation.ui.view.QuestionAnswerScreen.kt`.
+1.  Inside the `SuccessState` composable, use a `when (question.questionType)` block to display different input controls.
+2.  For the `"FILL_IN_THE_BLANK"` and `"TRANSLATE_EN_DE"` cases, keep the existing `OutlinedTextField`.
+3.  Add a new case for `"MULTIPLE_CHOICE_WORD"`:
+    *   Inside this case, iterate through the `question.options` list (if it's not null).
+    *   For each `option` string in the list, create a `Button` that fills the width.
+    *   The `Button`'s `onClick` should do two things: first call `onAnswerChange(option)` to register the choice, and then immediately call `onCheckAnswer()` to validate it.
+    *   All buttons in the list should be `enabled` only when `validationState` is `UNCHECKED`."
+
+---
+
+### Step 23.5: Finalize the ViewModel Logic
+**Goal:** Ensure the ViewModel correctly handles checking the answer for the new question type.
+**Context:** The `checkAnswer` function in `QuestionAnswerViewModel.kt` currently has logic for two question types.
+**Prompt:**
+"Modify the `checkAnswer` function in `com.vpk.sprachninja.presentation.viewmodel.QuestionAnswerViewModel.kt`.
+1. Find the `when (currentQuestion.questionType)` block you are about to create in the previous step (or create it if you haven't).
+2.  Add a new branch for the `"MULTIPLE_CHOICE_WORD"` case.
+3.  The logic inside this new branch can be identical to the `FILL_IN_THE_BLANK` logic: it should call your `checkFillInTheBlank` helper function, which performs a simple string comparison between `userAnswer.value` and `question.correctAnswer`. This works because the UI will have already set `userAnswer.value` to the text of the clicked button."
