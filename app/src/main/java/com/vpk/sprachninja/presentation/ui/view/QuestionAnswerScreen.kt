@@ -3,6 +3,7 @@ package com.vpk.sprachninja.presentation.ui.view
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,19 +22,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.vpk.sprachninja.domain.model.PracticeQuestion
 import com.vpk.sprachninja.presentation.viewmodel.QuestionAnswerViewModel
 import com.vpk.sprachninja.presentation.viewmodel.QuestionUiState
+import com.vpk.sprachninja.presentation.viewmodel.ValidationState
 import com.vpk.sprachninja.ui.theme.SprachNinjaTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,6 +45,9 @@ fun QuestionAnswerScreen(
     onNavigateUp: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    // Collect the new states as well
+    val userAnswer by viewModel.userAnswer.collectAsState()
+    val validationState by viewModel.validationState.collectAsState()
 
     SprachNinjaTheme {
         Scaffold(
@@ -65,7 +72,6 @@ fun QuestionAnswerScreen(
                     .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Use a 'when' expression to handle each state from the ViewModel
                 when (val state = uiState) {
                     is QuestionUiState.Loading -> {
                         CircularProgressIndicator()
@@ -74,7 +80,15 @@ fun QuestionAnswerScreen(
                         ErrorState(message = state.message, onRetry = { viewModel.loadNextQuestion() })
                     }
                     is QuestionUiState.Success -> {
-                        SuccessState(question = state.question, onNext = { viewModel.loadNextQuestion() })
+                        // Pass all the new state and events to the SuccessState
+                        SuccessState(
+                            question = state.question,
+                            userAnswer = userAnswer,
+                            onAnswerChange = { viewModel.userAnswer.value = it },
+                            validationState = validationState,
+                            onCheckAnswer = { viewModel.checkAnswer() },
+                            onNext = { viewModel.loadNextQuestion() }
+                        )
                     }
                 }
             }
@@ -83,29 +97,75 @@ fun QuestionAnswerScreen(
 }
 
 @Composable
-private fun SuccessState(question: String, onNext: () -> Unit) {
-    var userAnswer by remember { mutableStateOf("") }
-
+private fun SuccessState(
+    question: PracticeQuestion, // <-- CORRECTED: Now accepts PracticeQuestion
+    userAnswer: String,
+    onAnswerChange: (String) -> Unit,
+    validationState: ValidationState,
+    onCheckAnswer: () -> Unit,
+    onNext: () -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Use the `questionText` property from the object
         Text(
-            text = question,
+            text = question.questionText,
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(32.dp))
+
         OutlinedTextField(
             value = userAnswer,
-            onValueChange = { userAnswer = it },
+            onValueChange = onAnswerChange,
             label = { Text("Your answer") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            // Show correct/incorrect icons based on validation state
+            trailingIcon = {
+                when (validationState) {
+                    ValidationState.CORRECT -> Icon(Icons.Filled.Check, "Correct", tint = Color.Green)
+                    ValidationState.INCORRECT -> Icon(Icons.Filled.Close, "Incorrect", tint = MaterialTheme.colorScheme.error)
+                    ValidationState.UNCHECKED -> Unit // Show nothing
+                }
+            },
+            // The text field is read-only after the answer has been checked
+            readOnly = validationState != ValidationState.UNCHECKED
         )
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = onNext) {
-            Text("Next Question")
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Show the correct answer if the user was wrong
+        if (validationState == ValidationState.INCORRECT) {
+            Text(
+                text = "Correct answer: ${question.correctAnswer}",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Use a Row to hold the buttons
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            // "Check Answer" button is only enabled before checking
+            Button(
+                onClick = onCheckAnswer,
+                enabled = validationState == ValidationState.UNCHECKED
+            ) {
+                Text("Check Answer")
+            }
+
+            // "Next Question" button is only visible after checking
+            if (validationState != ValidationState.UNCHECKED) {
+                TextButton(onClick = onNext) {
+                    Text("Next Question")
+                }
+            }
         }
     }
 }
