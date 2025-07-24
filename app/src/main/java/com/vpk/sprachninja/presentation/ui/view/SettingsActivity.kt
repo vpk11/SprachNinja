@@ -8,23 +8,22 @@ import com.vpk.sprachninja.SprachNinjaApp
 import com.vpk.sprachninja.presentation.viewmodel.SettingsViewModel
 import com.vpk.sprachninja.presentation.viewmodel.ViewModelFactory
 
-/**
- * An activity dedicated to displaying and managing application settings.
- * It hosts the SettingsScreen composable and its corresponding ViewModel.
- */
 class SettingsActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val appContainer = (application as SprachNinjaApp).appContainer
-
         val viewModel: SettingsViewModel by viewModels {
             ViewModelFactory(appContainer)
         }
 
         setContent {
-            SettingsScreen(viewModel = viewModel)
+            // Pass a lambda to handle the up navigation, which simply finishes the activity.
+            SettingsScreen(
+                viewModel = viewModel,
+                onNavigateUp = { finish() }
+            )
         }
     }
 }

@@ -1,0 +1,129 @@
+{
+  "levels": [
+    {
+      "level": "A1",
+      "sub_levels": [
+        {
+          "sub_level": "A1.1",
+          "topics": [
+            "Greetings and Introductions",
+            "The Alphabet and Pronunciation",
+            "Numbers, Time, and Dates",
+            "Basic Personal Information (Name, Origin, Residence)",
+            "Family and Friends",
+            "Hobbies and Leisure Activities",
+            "Food and Drink (Ordering in a cafe)",
+            "Grammar: Present Tense (Präsens) of regular verbs, 'sein', 'haben'",
+            "Grammar: Nominative Case, Personal Pronouns",
+            "Grammar: W-Questions (Wer, Was, Wo, Wie)"
+          ]
+        },
+        {
+          "sub_level": "A1.2",
+          "topics": [
+            "Daily Routine and Activities",
+            "Shopping and Prices",
+            "Professions and Work",
+            "Places in the City and Asking for Directions",
+            "Grammar: Accusative Case",
+            "Grammar: Modal Verbs (können, müssen, wollen)",
+            "Grammar: Separable Verbs (trennbare Verben)",
+            "Grammar: Imperative (Imperativ)"
+          ]
+        }
+      ]
+    },
+    {
+      "level": "A2",
+      "sub_levels": [
+        {
+          "sub_level": "A2.1",
+          "topics": [
+            "Describing People, Things, and Places",
+            "Past Events (Perfekt tense)",
+            "Travel and Vacation",
+            "Health and Body Parts",
+            "Grammar: Dative Case",
+            "Grammar: Dative Prepositions",
+            "Grammar: Comparative and Superlative Adjectives"
+          ]
+        },
+        {
+          "sub_level": "A2.2",
+          "topics": [
+            "Giving Advice and Making Suggestions",
+            "Clothing and Weather",
+            "Living and Accommodation",
+            "Grammar: Subordinate Clauses (weil, dass)",
+            "Grammar: Past Tense (Präteritum) of 'sein' and 'haben'",
+            "Grammar: Genitive Case (Possession)",
+            "Grammar: Relative Clauses (Basics)"
+          ]
+        }
+      ]
+    },
+    {
+      "level": "B1",
+      "sub_levels": [
+        {
+          "sub_level": "B1.1",
+          "topics": [
+            "Expressing Opinions, Agreement, and Disagreement",
+            "Work and Career",
+            "Media and Technology",
+            "Grammar: Subjunctive II (Konjunktiv II) for wishes and polite requests",
+            "Grammar: Passive Voice (Passiv) in Present Tense",
+            "Grammar: Reflexive Verbs"
+          ]
+        },
+        {
+          "sub_level": "B1.2",
+          "topics": [
+            "Environment and Climate",
+            "Social and Cultural Life",
+            "Future Plans and Ambitions",
+            "Grammar: Adjective Declension without articles",
+            "Grammar: Subordinate clauses with 'obwohl', 'während'",
+            "Grammar: 'n-Deklination'"
+          ]
+        },
+        {
+          "sub_level": "B1.3",
+          "topics": [
+            "Education and Training",
+            "History and Politics (simple topics)",
+            "Literature and Art (simple discussions)",
+            "Grammar: Past Perfect (Plusquamperfekt)",
+            "Grammar: Future Tense (Futur I)",
+            "Grammar: Verbs with Prepositions"
+          ]
+        }
+      ]
+    },
+    {
+      "level": "B2",
+      "sub_levels": [
+        {
+          "sub_level": "B2.1",
+          "topics": [
+            "Advanced Discussions on Work and Economy",
+            "Science and Research",
+            "Grammar: Advanced Subjunctive (Konjunktiv I for indirect speech)",
+            "Grammar: Complex Passive Voice constructions",
+            "Grammar: Participles as Adjectives (Partizip I & II)"
+          ]
+        },
+        {
+          "sub_level": "B2.2",
+          "topics": [
+            "Detailed Argumentation and Debating",
+            "Psychology and Sociology",
+            "Grammar: Complex sentence structures with various subordinate clauses",
+            "Grammar: Noun-Verb combinations (Nomen-Verb-Verbindungen)",
+            "Grammar: Modal verbs in different tenses and moods"
+          ]
+        }
+      ]
+    }
+  ]
+}
