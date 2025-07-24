@@ -79,7 +79,8 @@ class GeminiRepositoryImpl(
         val recentQuestionsString = recentQuestions.joinToString(separator = "\n - ") { it }
 
         val baseInstructions = """
-            CRITICAL: Do not generate any of the following questions again:
+            IMPORTANT:
+            Do not generate any of the following questions again:
              - $recentQuestionsString
 
             OUTPUT:
@@ -89,7 +90,7 @@ class GeminiRepositoryImpl(
 
         return when (questionType) {
             "TRANSLATE_EN_DE" -> """
-                You are a German language teacher creating a translation exercise.
+                You are an expert German teacher creating a translation exercise.
                 Your task is to generate a simple English sentence for a German student at the $userLevel level to translate.
                 The topic is "$topic".
 
@@ -104,16 +105,18 @@ class GeminiRepositoryImpl(
             """.trimIndent()
 
             "FILL_IN_THE_BLANK" -> """
-                You are a German language teacher creating a fill-in-the-blank grammar exercise.
+                You are an expert German teacher. Your task is to generate one single, high-quality, unambiguous fill-in-the-blank question in German.
                 Your task is to generate a question for a student at the $userLevel level.
                 The topic is "$topic".
 
                 CRITICAL INSTRUCTIONS:
-                1. The question must test a SINGLE, SPECIFIC grammar rule or vocabulary word related to the topic.
-                2. The sentence context MUST make the correct answer clear and unambiguous. There should be only one logical answer.
-                3. BAD EXAMPLE: "Das ist meine ___." (This is bad because many nouns can fit).
-                4. GOOD EXAMPLE for topic 'Accusative Prepositions': "Der Vogel fliegt ___ den Baum." (The answer 'durch' is the only logical choice).
-                5. GOOD EXAMPLE for topic 'Family': "Die Mutter meines Vaters ist meine ___." (The answer 'Oma' is the only logical choice).
+                1. Choose exactly one grammar point appropriate for this level.
+                2. Introduce exactly one new vocabulary word suitable for this level.
+                3. Write one complete German sentence (8–15 words) containing a single "___" placeholder.
+                4. The sentence context must make the correct answer the only possible choice.
+                5. Use the new vocabulary in its correct form (case, gender, number) and don’t test any other rules.
+                6. Do not include any extra text, explanation or formatting—return only a raw JSON object.
+                7. BAD EXAMPLE: "Das ist meine ___." (This is bad because many nouns can fit).
 
                 $baseInstructions
                 The JSON "questionType" key MUST have the exact value "FILL_IN_THE_BLANK".
