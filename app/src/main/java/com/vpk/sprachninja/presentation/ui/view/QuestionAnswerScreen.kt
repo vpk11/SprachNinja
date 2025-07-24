@@ -34,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -54,7 +55,6 @@ fun QuestionAnswerScreen(
     val uiState by viewModel.uiState.collectAsState()
     val userAnswer by viewModel.userAnswer.collectAsState()
     val validationState by viewModel.validationState.collectAsState()
-    // 1. Collect the new feedback state
     val validationFeedback by viewModel.validationFeedback.collectAsState()
 
     SprachNinjaTheme {
@@ -90,7 +90,6 @@ fun QuestionAnswerScreen(
                             userAnswer = userAnswer,
                             onAnswerChange = { viewModel.userAnswer.value = it },
                             validationState = validationState,
-                            // 2. Pass the feedback down to the SuccessState
                             validationFeedback = validationFeedback,
                             onCheckAnswer = { viewModel.checkAnswer() },
                             onNext = { viewModel.loadNextQuestion() }
@@ -108,7 +107,7 @@ private fun SuccessState(
     userAnswer: String,
     onAnswerChange: (String) -> Unit,
     validationState: ValidationState,
-    validationFeedback: String?, // 3. Accept the new feedback parameter
+    validationFeedback: String?,
     onCheckAnswer: () -> Unit,
     onNext: () -> Unit
 ) {
@@ -128,34 +127,29 @@ private fun SuccessState(
         )
         Spacer(modifier = Modifier.height(32.dp))
 
-        OutlinedTextField(
-            value = userAnswer,
-            onValueChange = onAnswerChange,
-            label = { Text("Your answer") },
-            modifier = Modifier.fillMaxWidth(),
-            trailingIcon = {
-                when (validationState) {
-                    ValidationState.CORRECT -> Icon(Icons.Filled.Check, "Correct", tint = Color.Green)
-                    ValidationState.INCORRECT -> Icon(Icons.Filled.Close, "Incorrect", tint = MaterialTheme.colorScheme.error)
-                    ValidationState.UNCHECKED -> Unit
-                }
-            },
-            readOnly = validationState != ValidationState.UNCHECKED,
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    if (validationState == ValidationState.UNCHECKED) {
-                        onCheckAnswer()
-                        focusManager.clearFocus()
-                    }
+        when (question.questionType) {
+            "MULTIPLE_CHOICE_WORD" -> MultipleChoiceInput(
+                options = question.options,
+                validationState = validationState,
+                onAnswerSelected = { selectedOption ->
+                    onAnswerChange(selectedOption)
+                    onCheckAnswer()
                 }
             )
-        )
+            else -> {
+                TextInput(
+                    userAnswer = userAnswer,
+                    onAnswerChange = onAnswerChange,
+                    validationState = validationState,
+                    validationFeedback = validationFeedback,
+                    onCheckAnswer = onCheckAnswer,
+                    focusManager = focusManager
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 4. Display the feedback from the ViewModel
         if (validationState != ValidationState.UNCHECKED && !validationFeedback.isNullOrBlank()) {
             Text(
                 text = validationFeedback,
@@ -168,28 +162,78 @@ private fun SuccessState(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Button(
-                onClick = {
-                    onCheckAnswer()
-                    focusManager.clearFocus()
-                },
-                enabled = validationState == ValidationState.UNCHECKED && userAnswer.isNotBlank()
-            ) {
-                if (validationFeedback == "Checking...") {
-                    CircularProgressIndicator(modifier = Modifier.height(24.dp))
-                } else {
-                    Text("Check Answer")
-                }
+        if (validationState != ValidationState.UNCHECKED) {
+            TextButton(onClick = onNext, modifier = Modifier.fillMaxWidth()) {
+                Text("Next Question")
             }
+        }
+    }
+}
 
-            if (validationState != ValidationState.UNCHECKED) {
-                TextButton(onClick = onNext) {
-                    Text("Next Question")
-                }
+@Composable
+private fun TextInput(
+    userAnswer: String,
+    onAnswerChange: (String) -> Unit,
+    validationState: ValidationState,
+    validationFeedback: String?,
+    onCheckAnswer: () -> Unit,
+    focusManager: FocusManager
+) {
+    OutlinedTextField(
+        value = userAnswer,
+        onValueChange = onAnswerChange,
+        label = { Text("Your answer") },
+        modifier = Modifier.fillMaxWidth(),
+        trailingIcon = {
+            when (validationState) {
+                ValidationState.CORRECT -> Icon(Icons.Filled.Check, "Correct", tint = Color.Green)
+                ValidationState.INCORRECT -> Icon(Icons.Filled.Close, "Incorrect", tint = MaterialTheme.colorScheme.error)
+                ValidationState.UNCHECKED -> Unit
+            }
+        },
+        readOnly = validationState != ValidationState.UNCHECKED,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = {
+            if (validationState == ValidationState.UNCHECKED) {
+                onCheckAnswer()
+                focusManager.clearFocus()
+            }
+        })
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    Button(
+        onClick = {
+            onCheckAnswer()
+            focusManager.clearFocus()
+        },
+        enabled = validationState == ValidationState.UNCHECKED && userAnswer.isNotBlank(),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        if (validationFeedback == "Checking...") {
+            CircularProgressIndicator(modifier = Modifier.height(24.dp))
+        } else {
+            Text("Check Answer")
+        }
+    }
+}
+
+@Composable
+private fun MultipleChoiceInput(
+    options: List<String>?,
+    validationState: ValidationState,
+    onAnswerSelected: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        options?.forEach { option ->
+            Button(
+                onClick = { onAnswerSelected(option) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = validationState == ValidationState.UNCHECKED
+            ) {
+                Text(option)
             }
         }
     }

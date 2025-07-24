@@ -7,7 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,11 +38,26 @@ fun PracticeModeDialog(
                     description = "Fill-in-the-blank questions.",
                     onClick = { onModeSelected("FILL_IN_THE_BLANK") }
                 )
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    thickness = DividerDefaults.Thickness,
+                    color = DividerDefaults.color
+                )
                 PracticeModeItem(
                     title = "Translation",
                     description = "Translate sentences from English to German.",
                     onClick = { onModeSelected("TRANSLATE_EN_DE") }
+                )
+                // Add the new option here
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    thickness = DividerDefaults.Thickness,
+                    color = DividerDefaults.color
+                )
+                PracticeModeItem(
+                    title = "Learn Words",
+                    description = "Multiple choice vocabulary.",
+                    onClick = { onModeSelected("MULTIPLE_CHOICE_WORD") }
                 )
             }
         },
