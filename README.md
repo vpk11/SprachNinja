@@ -114,8 +114,6 @@ A huge thanks to the people who have contributed to this project:
   <br />
 </a>
 
-Want to contribute? Check out the [issues](https://github.com/vpk11/SprachNinja/issues) page!
-
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
 
 ## 📜 License
