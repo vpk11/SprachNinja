@@ -34,7 +34,7 @@
   <br><br>
   <img src="/assets/04.jpg" alt="Practice Session" width="200" hspace="5">
   <img src="/assets/05.jpg" alt="Profile Screen" width="200" hspace="5">
-  <img src="/assets/06.jpg" alt="Settings Screen" width="200" hspace="5">
+  <img src="/assets/06.jpg" alt="Profile Screen" width="200" hspace="5">
 </p>
 <br>
 
