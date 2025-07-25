@@ -28,13 +28,13 @@
 
 <br>
 <p align="center">
-  <!-- Suggestion: Replace these with actual screenshots or a GIF of your app -->
-  <img src="/assets/01.jpg" alt="Onboarding Screen" hspace="10">
-  <img src="/assets/02.jpg" alt="Home Screen" hspace="10">
-  <img src="/assets/03.jpg" alt="Practice Screen" hspace="10">
-  <img src="/assets/04.jpg" alt="Onboarding Screen" hspace="10">
-  <img src="/assets/05.jpg" alt="Home Screen" hspace="10">
-  <img src="/assets/06.jpg" alt="Practice Screen" hspace="10">
+  <img src="/assets/01.jpg" alt="Onboarding Screen" width="200" hspace="5">
+  <img src="/assets/02.jpg" alt="Home Screen" width="200" hspace="5">
+  <img src="/assets/03.jpg" alt="Practice Mode Selection" width="200" hspace="5">
+  <br><br>
+  <img src="/assets/04.jpg" alt="Practice Session" width="200" hspace="5">
+  <img src="/assets/05.jpg" alt="Profile Screen" width="200" hspace="5">
+  <img src="/assets/06.jpg" alt="Settings Screen" width="200" hspace="5">
 </p>
 <br>
 
@@ -109,13 +109,11 @@ If you want to build the project yourself, follow these steps:
 
 A huge thanks to the people who have contributed to this project:
 
-<p align="center">
-  <a href="https://github.com/vpk11">
-    <img src="https://github.com/vpk11.png?size=80" width="80px;" alt="vpk11"/>
-    <br />
-    <sub><b>VPK11</b></sub>
-  </a>
-</p>
+<a href="https://github.com/vpk11">
+  <img src="https://github.com/vpk11.png?size=80" width="80px;" alt="vpk11"/>
+  <br />
+  <sub><b>VPK11</b></sub>
+</a>
 
 Want to contribute? Check out the [issues](https://github.com/vpk11/SprachNinja/issues) page!
 
