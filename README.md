@@ -112,7 +112,6 @@ A huge thanks to the people who have contributed to this project:
 <a href="https://github.com/vpk11">
   <img src="https://github.com/vpk11.png?size=80" width="80px;" alt="vpk11"/>
   <br />
-  <sub><b>VPK11</b></sub>
 </a>
 
 Want to contribute? Check out the [issues](https://github.com/vpk11/SprachNinja/issues) page!
